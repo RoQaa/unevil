@@ -1,9 +1,16 @@
 from fastapi import FastAPI, HTTPException,UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
+from vosk import Model, KaldiRecognizer
 from pydantic import BaseModel
-import base64
+from pydub import AudioSegment
 import requests
 import re
+import wave
+import json
+import tempfile
+import cv2
+import numpy as np
+
 
 app = FastAPI()
 
@@ -194,202 +201,91 @@ def analyze_image(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
-def analyze_with_hive_audio(audio_bytes, file_name):
-    try:
-        response = requests.post(
-            "https://api.thehive.ai/api/v2/task/sync",
-            headers={
-                "Authorization": f"Token {HIVE_API_KEY}"
-            },
-            files={
-                "media": (file_name, audio_bytes, "application/octet-stream")
-            },
-            data={
-                "models": "hive/ai-generated-and-deepfake-content-detection"
-            },
-            timeout=90,
-        )
-
-        result_json = response.json()
-
-        if response.status_code != 200:
-            return {
-                "ok": False,
-                "reason": str(result_json)
-            }
-
-        output = result_json.get("output", [])
-        if not output:
-            return {
-                "ok": False,
-                "reason": "No output returned from Hive"
-            }
-
-        first_frame = output[0]
-        classes = first_frame.get("classes", [])
-
-        ai_generated_audio = 0.0
-        not_ai_generated_audio = 0.0
-
-        for item in classes:
-            class_name = item.get("class", "")
-            value = float(item.get("value", 0.0))
-
-            if class_name == "ai_generated_audio":
-                ai_generated_audio = value
-            elif class_name == "not_ai_generated_audio":
-                not_ai_generated_audio = value
-
-        if ai_generated_audio >= not_ai_generated_audio:
-            return {
-                "ok": True,
-                "result": "Likely AI Audio",
-                "confidence": round(ai_generated_audio * 100, 2),
-                "reason": "Hive detected strong indicators of AI-generated speech."
-            }
-        else:
-            return {
-                "ok": True,
-                "result": "Likely Real Audio",
-                "confidence": round(not_ai_generated_audio * 100, 2),
-                "reason": "Hive detected stronger indicators of authentic human speech."
-            }
-
-    except Exception as e:
-        return {
-            "ok": False,
-            "reason": str(e)
-        }
+    
 
 
-def analyze_with_aurigin_audio(audio_bytes, file_name):
-    try:
-        response = requests.post(
-            "https://api.aurigin.ai/v1/predict",
-            headers={
-                "x-api-key": AURIGIN_API_KEY,
-            },
-            files={
-                "file": (file_name, audio_bytes, "application/octet-stream")
-            },
-            timeout=60,
-        )
-
-        result_json = response.json()
-
-        if response.status_code != 200:
-            return {
-                "ok": False,
-                "reason": str(result_json)
-            }
-
-        global_data = result_json.get("global", {})
-        global_result = str(global_data.get("result", "")).lower()
-        global_confidence = float(global_data.get("confidence", 0.0)) * 100
-        audio_duration = float(result_json.get("audio_duration", 0.0))
-        warnings = result_json.get("warnings", [])
-
-        if global_result == "spoofed":
-            return {
-                "ok": True,
-                "result": "Likely AI Audio",
-                "confidence": round(global_confidence, 2),
-                "reason": "Aurigin detected strong indicators of generated audio."
-            }
-
-        if global_result in ["authentic", "bonafide"]:
-            return {
-                "ok": True,
-                "result": "Likely Real Audio",
-                "confidence": round(global_confidence, 2),
-                "reason": "Aurigin detected strong indicators of a real voice."
-            }
-
-        if global_result == "partially_spoofed":
-            return {
-                "ok": True,
-                "result": "Mixed Detection",
-                "confidence": round(global_confidence, 2),
-                "reason": "Aurigin found mixed signals. Some parts appear real while others appear AI-generated."
-            }
-
-        if audio_duration < 3 or warnings:
-            return {
-                "ok": False,
-                "reason": "Audio is too short or unclear. Please upload a clearer voice clip longer than 3 seconds."
-            }
-
-        return {
-            "ok": False,
-            "reason": f"Unexpected response: {result_json}"
-        }
-
-    except Exception as e:
-        return {
-            "ok": False,
-            "reason": str(e)
-        }
 
 
+# دالة الصوت
+model = Model("vosk-model-small-en-us-0.15")  
 @app.post("/analyze-audio")
-def analyze_audio(data: AudioRequest):
+def analyze_audio(file: UploadFile = File(...)):
     try:
-        audio_bytes = base64.b64decode(data.audio_base64)
+        # حفظ الملف مؤقتًا
+        temp = tempfile.NamedTemporaryFile(delete=False)
+        temp.write(file.file.read())
+        temp.close()
 
-        # نحاول Aurigin أول
-        aurigin_result = analyze_with_aurigin_audio(audio_bytes, data.file_name)
-        if aurigin_result.get("ok"):
+        wf = wave.open(temp.name, "rb")
+
+        rec = KaldiRecognizer(model, wf.getframerate())
+
+        text = ""
+
+        while True:
+            data = wf.readframes(4000)
+            if len(data) == 0:
+                break
+            if rec.AcceptWaveform(data):
+                res = json.loads(rec.Result())
+                text += res.get("text", "")
+
+        final_res = json.loads(rec.FinalResult())
+        text += final_res.get("text", "")
+
+        # حلل النص
+        if not text.strip():
             return {
-                "result": aurigin_result["result"],
-                "confidence": f"{aurigin_result['confidence']}%",
-                "reason": aurigin_result["reason"]
+                "result": "No speech detected",
+                "confidence": "0%",
+                "reason": "Audio does not contain clear speech"
             }
 
-        # إذا خرب Aurigin، نرجع تلقائيًا لـ Hive
-        hive_result = analyze_with_hive_audio(audio_bytes, data.file_name)
-        if hive_result.get("ok"):
-            return {
-                "result": hive_result["result"],
-                "confidence": f"{hive_result['confidence']}%",
-                "reason": f"{hive_result['reason']} (Fallback from Aurigin)"
-            }
+        text_result = analyze_text(TextRequest(text=text))
 
         return {
-            "result": "Analysis failed",
-            "confidence": "",
-            "reason": f"Aurigin failed: {aurigin_result.get('reason', '')} | Hive failed: {hive_result.get('reason', '')}"
+            "transcript": text,
+            "analysis": text_result
         }
 
     except Exception as e:
-        return {
-            "result": "Analysis failed",
-            "confidence": "",
-            "reason": f"Audio processing error: {str(e)}"
-        }
-
-
-@app.post("/analyze-audio-hive")
-def analyze_audio_hive(data: AudioRequest):
+        raise HTTPException(status_code=500, detail=str(e))
+    
+    
+# دالة الفيديو
+@app.post("/analyze-video")
+def analyze_video(file: UploadFile = File(...)):
     try:
-        audio_bytes = base64.b64decode(data.audio_base64)
-        hive_data = analyze_with_hive_audio(audio_bytes, data.file_name)
+        temp = tempfile.NamedTemporaryFile(delete=False)
+        temp.write(file.file.read())
+        temp.close()
 
-        if not hive_data.get("ok"):
-            return {
-                "result": "Analysis failed",
-                "confidence": "",
-                "reason": f"Hive error: {hive_data.get('reason', '')}"
-            }
+        cap = cv2.VideoCapture(temp.name)
+
+        scores = []
+        count = 0
+
+        while cap.isOpened() and count < 5:
+            ret, frame = cap.read()
+            if not ret:
+                break
+
+            # تحليل بسيط (فرق الحواف - heuristic)
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            variance = np.var(gray)
+
+            scores.append(variance)
+            count += 1
+
+        cap.release()
+
+        avg = sum(scores) / len(scores) if scores else 0
 
         return {
-            "result": hive_data.get("result", "Analysis failed"),
-            "confidence": f"{round(float(hive_data.get('confidence', 0.0)), 2)}%",
-            "reason": hive_data.get("reason", "")
+            "frame_analysis": scores,
+            "average_score": avg,
+            "result": "Likely Real Video" if avg > 500 else "Possibly AI Generated"
         }
 
     except Exception as e:
-        return {
-            "result": "Analysis failed",
-            "confidence": "",
-            "reason": f"Hive audio processing error: {str(e)}"
-        }
+        raise HTTPException(status_code=500, detail=str(e))
