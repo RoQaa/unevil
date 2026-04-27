@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "606110744331",
+    "project_id": "unveil-ai-541aa",
+    "storage_bucket": "unveil-ai-541aa.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:606110744331:android:6a9464e1516b822c636c0e",
+        "android_client_info": {
+          "package_name": "com.example.unveil_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDdwD-581Tlvvb20Ghc8QQOWc84RcDoULk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

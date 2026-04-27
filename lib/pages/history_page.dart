@@ -1,0 +1,685 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+
+class HistoryPage extends StatelessWidget {
+  const HistoryPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final String lang = Localizations.localeOf(context).languageCode;
+    final bool isArabic = lang == 'ar';
+    final user = FirebaseAuth.instance.currentUser;
+
+    return DefaultTabController(
+      length: 5,
+      child: Scaffold(
+        backgroundColor: const Color(0xFF18245C),
+        appBar: AppBar(
+          backgroundColor: const Color(0xFF18245C),
+          foregroundColor: Colors.white,
+          title: Text(_text('title', lang)),
+          actions: user == null
+              ? []
+              : [
+                  IconButton(
+                    onPressed: () async {
+                      final bool? confirm = await showDialog<bool>(
+                        context: context,
+                        builder: (context) {
+                          return AlertDialog(
+                            backgroundColor: const Color(0xFF24356F),
+                            title: Text(
+                              _text('deleteAllTitle', lang),
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                            content: Text(
+                              _text('deleteAllMessage', lang),
+                              style: const TextStyle(color: Colors.white70),
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () =>
+                                    Navigator.pop(context, false),
+                                child: Text(
+                                  _text('cancel', lang),
+                                  style: const TextStyle(color: Colors.white70),
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: () =>
+                                    Navigator.pop(context, true),
+                                child: Text(
+                                  _text('delete', lang),
+                                  style:
+                                      const TextStyle(color: Colors.redAccent),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+
+                      if (confirm != true) return;
+
+                      final historyRef = FirebaseFirestore.instance
+                          .collection('users')
+                          .doc(user.uid)
+                          .collection('history');
+
+                      final snapshot = await historyRef.get();
+
+                      final batch = FirebaseFirestore.instance.batch();
+                      for (final doc in snapshot.docs) {
+                        batch.delete(doc.reference);
+                      }
+
+                      await batch.commit();
+
+                      if (!context.mounted) return;
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(_text('allDeleted', lang)),
+                          backgroundColor: const Color(0xFF24356F),
+                        ),
+                      );
+                    },
+                    icon: const Icon(
+                      Icons.delete_sweep_outlined,
+                      color: Colors.white,
+                    ),
+                    tooltip: _text('deleteAll', lang),
+                  ),
+                ],
+          bottom: TabBar(
+            isScrollable: true,
+            labelColor: const Color(0xFFF5A623),
+            unselectedLabelColor: Colors.white70,
+            indicatorColor: const Color(0xFFF5A623),
+            tabs: [
+              Tab(text: _text('all', lang)),
+              Tab(text: _text('text', lang)),
+              Tab(text: _text('image', lang)),
+              Tab(text: _text('audio', lang)),
+              Tab(text: _text('video', lang)),
+            ],
+          ),
+        ),
+        body: Directionality(
+          textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
+          child: user == null
+              ? Center(
+                  child: Text(
+                    _text('noUser', lang),
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 16,
+                    ),
+                  ),
+                )
+              : StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('users')
+                      .doc(user.uid)
+                      .collection('history')
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) {
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: Text(
+                            'Error:\n${snapshot.error}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      );
+                    }
+
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(
+                        child: CircularProgressIndicator(
+                          color: Color(0xFFF5A623),
+                        ),
+                      );
+                    }
+
+                    final docs = snapshot.data?.docs ?? [];
+
+                    final sortedDocs = [...docs];
+                    sortedDocs.sort((a, b) {
+                      final aData = a.data() as Map<String, dynamic>;
+                      final bData = b.data() as Map<String, dynamic>;
+
+                      final aTime = aData['createdAt'];
+                      final bTime = bData['createdAt'];
+
+                      DateTime aDate = DateTime(2000);
+                      DateTime bDate = DateTime(2000);
+
+                      if (aTime is Timestamp) {
+                        aDate = aTime.toDate();
+                      } else if (aTime is DateTime) {
+                        aDate = aTime;
+                      }
+
+                      if (bTime is Timestamp) {
+                        bDate = bTime.toDate();
+                      } else if (bTime is DateTime) {
+                        bDate = bTime;
+                      }
+
+                      return bDate.compareTo(aDate);
+                    });
+
+                    return TabBarView(
+                      children: [
+                        _buildHistoryList(
+                          context: context,
+                          docs: sortedDocs,
+                          lang: lang,
+                          filterType: null,
+                          userId: user.uid,
+                        ),
+                        _buildHistoryList(
+                          context: context,
+                          docs: sortedDocs,
+                          lang: lang,
+                          filterType: 'text',
+                          userId: user.uid,
+                        ),
+                        _buildHistoryList(
+                          context: context,
+                          docs: sortedDocs,
+                          lang: lang,
+                          filterType: 'image',
+                          userId: user.uid,
+                        ),
+                        _buildHistoryList(
+                          context: context,
+                          docs: sortedDocs,
+                          lang: lang,
+                          filterType: 'audio',
+                          userId: user.uid,
+                        ),
+                        _buildHistoryList(
+                          context: context,
+                          docs: sortedDocs,
+                          lang: lang,
+                          filterType: 'video',
+                          userId: user.uid,
+                        ),
+                      ],
+                    );
+                  },
+                ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHistoryList({
+    required BuildContext context,
+    required List<QueryDocumentSnapshot> docs,
+    required String lang,
+    required String? filterType,
+    required String userId,
+  }) {
+    final filteredDocs = filterType == null
+        ? docs
+        : docs.where((doc) {
+            final data = doc.data() as Map<String, dynamic>;
+            return data['type'] == filterType;
+          }).toList();
+
+    if (filteredDocs.isEmpty) {
+      return Center(
+        child: Text(
+          _text('empty', lang),
+          style: const TextStyle(
+            color: Colors.white70,
+            fontSize: 16,
+          ),
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: ListView.separated(
+        itemCount: filteredDocs.length,
+        separatorBuilder: (_, __) => const SizedBox(height: 15),
+        itemBuilder: (context, index) {
+          final doc = filteredDocs[index];
+          final data = doc.data() as Map<String, dynamic>;
+
+          final String title = data['title'] ?? '';
+          final String result = data['result'] ?? '';
+          final String confidence = data['confidence'] ?? '';
+          final String note = data['note'] ?? '';
+          final String type = data['type'] ?? '';
+
+          final createdAtRaw = data['createdAt'];
+          DateTime? createdAt;
+
+          if (createdAtRaw is Timestamp) {
+            createdAt = createdAtRaw.toDate();
+          } else if (createdAtRaw is DateTime) {
+            createdAt = createdAtRaw;
+          }
+
+final lowerResult = result.toLowerCase();
+
+final bool isAi =
+    (lowerResult.contains('ai generated') ||
+     lowerResult.contains('likely ai') ||
+     lowerResult.contains('ai audio') ||
+     lowerResult.contains('مولد') ||
+     lowerResult.contains('ذكاء')) &&
+    !lowerResult.contains('real') &&
+    !lowerResult.contains('human') &&
+    !lowerResult.contains('authentic');
+          return Dismissible(
+            key: Key(doc.id),
+            direction: DismissDirection.endToStart,
+            background: Container(
+              decoration: BoxDecoration(
+                color: Colors.redAccent,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              alignment: Alignment.centerRight,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: const Icon(
+                Icons.delete_outline,
+                color: Colors.white,
+                size: 28,
+              ),
+            ),
+            confirmDismiss: (_) async {
+              return await showDialog<bool>(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    backgroundColor: const Color(0xFF24356F),
+                    title: Text(
+                      _text('deleteItemTitle', lang),
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                    content: Text(
+                      _text('deleteItemMessage', lang),
+                      style: const TextStyle(color: Colors.white70),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: Text(
+                          _text('cancel', lang),
+                          style: const TextStyle(color: Colors.white70),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        child: Text(
+                          _text('delete', lang),
+                          style: const TextStyle(color: Colors.redAccent),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+            onDismissed: (_) async {
+              await FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(userId)
+                  .collection('history')
+                  .doc(doc.id)
+                  .delete();
+
+              if (!context.mounted) return;
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(_text('deleted', lang)),
+                  backgroundColor: const Color(0xFF24356F),
+                ),
+              );
+            },
+            child: HistoryCard(
+              docId: doc.id,
+              userId: userId,
+              title: title,
+              result: result,
+              confidence: confidence,
+              date: _formatDate(createdAt, lang),
+              note: note,
+              isAi: isAi,
+              type: type,
+              lang: lang,
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  String _formatDate(DateTime? date, String lang) {
+    if (date == null) {
+      return lang == 'ar' ? 'الآن' : 'Now';
+    }
+
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+
+    final day = twoDigits(date.day);
+    final month = twoDigits(date.month);
+    final year = date.year.toString();
+
+    final hour =
+        date.hour > 12 ? date.hour - 12 : (date.hour == 0 ? 12 : date.hour);
+
+    final minute = twoDigits(date.minute);
+
+    final period =
+        date.hour >= 12 ? (lang == 'ar' ? 'م' : 'PM') : (lang == 'ar' ? 'ص' : 'AM');
+
+    return '$day/$month/$year - $hour:$minute $period';
+  }
+
+  String _text(String key, String lang) {
+    final data = {
+      'title': {
+        'en': 'History',
+        'ar': 'السجل',
+      },
+      'all': {
+        'en': 'All',
+        'ar': 'الكل',
+      },
+      'text': {
+        'en': 'Text',
+        'ar': 'النصوص',
+      },
+      'image': {
+        'en': 'Image',
+        'ar': 'الصور',
+      },
+      'audio': {
+        'en': 'Audio',
+        'ar': 'الصوت',
+      },
+      'video': {
+        'en': 'Video',
+        'ar': 'الفيديو',
+      },
+      'empty': {
+        'en': 'No history yet',
+        'ar': 'لا يوجد سجل حتى الآن',
+      },
+      'noUser': {
+        'en': 'No user logged in',
+        'ar': 'لا يوجد مستخدم',
+      },
+      'deleteAll': {
+        'en': 'Delete all',
+        'ar': 'حذف الكل',
+      },
+      'deleteAllTitle': {
+        'en': 'Delete all history?',
+        'ar': 'حذف كل السجل؟',
+      },
+      'deleteAllMessage': {
+        'en': 'This will remove all saved analyses.',
+        'ar': 'سيتم حذف جميع التحليلات المحفوظة.',
+      },
+      'deleteItemTitle': {
+        'en': 'Delete this item?',
+        'ar': 'حذف هذا العنصر؟',
+      },
+      'deleteItemMessage': {
+        'en': 'This analysis will be removed from history.',
+        'ar': 'سيتم حذف هذا التحليل من السجل.',
+      },
+      'cancel': {
+        'en': 'Cancel',
+        'ar': 'إلغاء',
+      },
+      'delete': {
+        'en': 'Delete',
+        'ar': 'حذف',
+      },
+      'deleted': {
+        'en': 'Item deleted',
+        'ar': 'تم حذف العنصر',
+      },
+      'allDeleted': {
+        'en': 'All history deleted',
+        'ar': 'تم حذف كل السجل',
+      },
+      'confidence': {
+        'en': 'Confidence',
+        'ar': 'الثقة',
+      },
+    };
+
+    return data[key]?[lang] ?? data[key]?['en'] ?? key;
+  }
+}
+
+class HistoryCard extends StatelessWidget {
+  final String docId;
+  final String userId;
+  final String title;
+  final String result;
+  final String confidence;
+  final String date;
+  final String note;
+  final bool isAi;
+  final String type;
+  final String lang;
+
+  const HistoryCard({
+    super.key,
+    required this.docId,
+    required this.userId,
+    required this.title,
+    required this.result,
+    required this.confidence,
+    required this.date,
+    required this.note,
+    required this.isAi,
+    required this.type,
+    required this.lang,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final Color color = isAi ? Colors.redAccent : Colors.greenAccent;
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: const Color(0xFF24356F),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: color,
+          width: 1.3,
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            isAi ? Icons.smart_toy_outlined : Icons.verified_outlined,
+            color: color,
+            size: 28,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () async {
+                        final bool? confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (context) {
+                            return AlertDialog(
+                              backgroundColor: const Color(0xFF24356F),
+                              title: Text(
+                                lang == 'ar'
+                                    ? 'حذف هذا العنصر؟'
+                                    : 'Delete this item?',
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                              content: Text(
+                                lang == 'ar'
+                                    ? 'سيتم حذف هذا التحليل من السجل.'
+                                    : 'This analysis will be removed from history.',
+                                style: const TextStyle(color: Colors.white70),
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.pop(context, false),
+                                  child: Text(
+                                    lang == 'ar' ? 'إلغاء' : 'Cancel',
+                                    style:
+                                        const TextStyle(color: Colors.white70),
+                                  ),
+                                ),
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.pop(context, true),
+                                  child: Text(
+                                    lang == 'ar' ? 'حذف' : 'Delete',
+                                    style: const TextStyle(
+                                        color: Colors.redAccent),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+
+                        if (confirm != true) return;
+
+                        await FirebaseFirestore.instance
+                            .collection('users')
+                            .doc(userId)
+                            .collection('history')
+                            .doc(docId)
+                            .delete();
+
+                        if (!context.mounted) return;
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              lang == 'ar'
+                                  ? 'تم حذف العنصر'
+                                  : 'Item deleted',
+                            ),
+                            backgroundColor: const Color(0xFF24356F),
+                          ),
+                        );
+                      },
+                      icon: const Icon(
+                        Icons.delete_outline,
+                        color: Colors.white70,
+                        size: 20,
+                      ),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  result,
+                  style: TextStyle(
+                    color: color,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  "${lang == 'ar' ? 'الثقة' : 'Confidence'}: $confidence",
+                  style: const TextStyle(
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  date,
+                  style: const TextStyle(
+                    color: Colors.white54,
+                    fontSize: 13,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  note,
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  _typeLabel(type, lang),
+                  style: const TextStyle(
+                    color: Colors.white54,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _typeLabel(String type, String lang) {
+    final labels = {
+      'text': {
+        'en': 'TEXT',
+        'ar': 'نص',
+      },
+      'image': {
+        'en': 'IMAGE',
+        'ar': 'صورة',
+      },
+      'audio': {
+        'en': 'AUDIO',
+        'ar': 'صوت',
+      },
+      'video': {
+        'en': 'VIDEO',
+        'ar': 'فيديو',
+      },
+    };
+
+    return labels[type]?[lang] ?? labels[type]?['en'] ?? type.toUpperCase();
+  }
+}
