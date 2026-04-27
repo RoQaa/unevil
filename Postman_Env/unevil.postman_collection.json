@@ -1,0 +1,81 @@
+{
+  "info": {
+    "_postman_id": "95c4ff17-265f-45ce-8e4f-16e7adfed746",
+    "name": "unevil",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "36141219"
+  },
+  "item": [
+    {
+      "name": "Running",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{URL}}/",
+          "host": [
+            "{{URL}}"
+          ],
+          "path": [
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "analyze-image",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "uuid": "47e1d651-c85a-4d16-89c4-fda8b432f7d2",
+              "src": "/C:/Users/farooq/Downloads/ChatOn image.jpeg"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{URL}}/analyze-image",
+          "host": [
+            "{{URL}}"
+          ],
+          "path": [
+            "analyze-image"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "analyze-text",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"text\": \"My Dearest [Name],Every moment spent with you feels like a beautiful dream. Your laughter brightens my days, and your kindness warms my heart. I cherish our memories together and look forward to creating many more. Thank you for being the incredible person you are. I love you more than words can say.Forever yours,[Your Name]\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{URL}}/analyze-text",
+          "host": [
+            "{{URL}}"
+          ],
+          "path": [
+            "analyze-text"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
