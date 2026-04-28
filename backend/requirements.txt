@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+vosk
+pydub
+pydantic
+requests
+numpy
+opencv-python-headless
+python-multipart
+python-dotenv
