@@ -327,7 +327,7 @@ async def analyze_audio(file: UploadFile = File(...)):
             raise HTTPException(status_code=400, detail=f"Unsupported file format: {ext}. Please upload wav, mp3, m4a, ogg, or flac.")
 
         file_bytes = await file.read()
-        MAX_FILE_SIZE = 5 * 1024 * 1024 # 5 MB
+        MAX_FILE_SIZE = 10 * 1024 * 1024 # 10 MB
         if len(file_bytes) > MAX_FILE_SIZE:
             raise HTTPException(status_code=400, detail="File too large. Maximum allowed size is 5MB to ensure fast processing.")
 
