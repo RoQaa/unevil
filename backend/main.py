@@ -243,8 +243,14 @@ def analyze_image(file: UploadFile = File(...)):
 
         ai_score = float(result_json.get("type", {}).get("ai_generated", 0.0)) * 100
 
+        result = "Likely AI Generated" if ai_score >= 50 else "Likely Human Written"
+        confidence = f"{ai_score:.2f}%"
+        reason = "Visual GenAI indicators detected" if ai_score >= 50 else "Natural visual patterns detected"
+
         return {
-            "ai_score": ai_score,
+            "result": result,
+            "confidence": confidence,
+            "reason": reason,
             "raw": result_json
         }
 
@@ -297,8 +303,14 @@ async def analyze_video(file: UploadFile = File(...)):
 
         ai_score = float(result_json.get("type", {}).get("ai_generated", 0.0)) * 100
 
+        result = "Likely AI Generated" if ai_score >= 50 else "Likely Human Written"
+        confidence = f"{ai_score:.2f}%"
+        reason = "Visual GenAI indicators detected in video frames" if ai_score >= 50 else "Natural video patterns detected"
+
         return {
-            "ai_score": ai_score,
+            "result": result,
+            "confidence": confidence,
+            "reason": reason,
             "raw": result_json,
             "message": "Analyzed middle frame of the video"
         }
@@ -422,12 +434,10 @@ async def analyze_audio(file: UploadFile = File(...)):
 
         # ===== Response =====
         return {
-            "transcript": transcript if transcript else "No speech detected",
-            "audio_analysis": {
-                "is_ai": is_ai,
-                "confidence": confidence,
-                "note": note
-            }
+            "result": "Likely AI Generated" if is_ai else "Likely Human Written",
+            "confidence": confidence,
+            "reason": note,
+            "transcript": transcript if transcript else "No speech detected"
         }
 
     except Exception as e:

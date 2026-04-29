@@ -1,9 +1,13 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'history_service.dart';
+import '../core/app_text_styles.dart';
+import '../core/app_styles.dart';
+import '../core/responsive_wrapper.dart';
 
 class ImageAnalysisPage extends StatefulWidget {
   const ImageAnalysisPage({super.key});
@@ -69,15 +73,21 @@ class _ImageAnalysisPageState extends State<ImageAnalysisPage> {
     });
 
     try {
-      final imageBase64 = base64Encode(imageBytes!);
-
-      final response = await http.post(
+      var request = http.MultipartRequest(
+        'POST',
         Uri.parse('http://127.0.0.1:8000/analyze-image'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'image_base64': imageBase64,
-        }),
       );
+
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          'file',
+          imageBytes!,
+          filename: selectedImage!.name,
+        ),
+      );
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -97,10 +107,10 @@ class _ImageAnalysisPageState extends State<ImageAnalysisPage> {
         if (hasValidAnalysis) {
           await HistoryService.saveHistory(
             type: 'image',
-            title: _text('title', lang),
-            result: apiResult,
+            titleKey: _text('title', lang),
+            resultKey: apiResult,
             confidence: apiConfidence,
-            note: apiReason,
+            noteKey: apiReason,
           );
 
           if (!mounted) return;
@@ -183,18 +193,16 @@ class _ImageAnalysisPageState extends State<ImageAnalysisPage> {
         textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
         child: Padding(
           padding: const EdgeInsets.all(20),
-          child: ListView(
-            children: [
+          child: ResponsiveWrapper(
+            child: ListView(
+              children: [
               Text(
                 _text('upload', lang),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                ),
+                style: AppTextStyles.h1.copyWith(fontSize: 16.sp),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20.h),
               SizedBox(
-                height: 52,
+                height: 52.h,
                 child: ElevatedButton.icon(
                   onPressed: pickImage,
                   style: ElevatedButton.styleFrom(
@@ -205,15 +213,15 @@ class _ImageAnalysisPageState extends State<ImageAnalysisPage> {
                   label: Text(_text('choose', lang)),
                 ),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20.h),
               if (imageBytes != null)
                 Container(
-                  height: 220,
+                  height: 220.h,
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(AppStyles.borderRadius),
                   ),
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(AppStyles.borderRadius),
                     child: Image.memory(
                       imageBytes!,
                       fit: BoxFit.cover,
@@ -225,18 +233,21 @@ class _ImageAnalysisPageState extends State<ImageAnalysisPage> {
                 children: [
                   Expanded(
                     child: SizedBox(
-                      height: 52,
+                      height: AppStyles.buttonHeight,
                       child: ElevatedButton(
                         onPressed: isLoading ? null : analyzeImage,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFB8A7FF),
                           foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(AppStyles.borderRadius),
+                          ),
                         ),
                         child: isLoading
-                            ? const SizedBox(
-                                height: 24,
-                                width: 24,
-                                child: CircularProgressIndicator(
+                            ? SizedBox(
+                                height: 24.r,
+                                width: 24.r,
+                                child: const CircularProgressIndicator(
                                   color: Colors.white,
                                   strokeWidth: 2.5,
                                 ),
@@ -245,46 +256,46 @@ class _ImageAnalysisPageState extends State<ImageAnalysisPage> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12.w),
                   SizedBox(
-                    height: 52,
+                    height: AppStyles.buttonHeight,
                     child: OutlinedButton(
                       onPressed: clearImage,
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: Colors.white24),
                         foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(AppStyles.borderRadius),
+                        ),
                       ),
                       child: Text(_text('clear', lang)),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: 24.h),
               if (isLoading)
                 Container(
-                  padding: const EdgeInsets.all(18),
+                  padding: EdgeInsets.all(18.r),
                   decoration: BoxDecoration(
                     color: const Color(0xFF24356F),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(16.r),
                   ),
                   child: Row(
                     children: [
-                      const SizedBox(
-                        height: 24,
-                        width: 24,
-                        child: CircularProgressIndicator(
+                      SizedBox(
+                        height: 24.r,
+                        width: 24.r,
+                        child: const CircularProgressIndicator(
                           color: Color(0xFFF5A623),
                           strokeWidth: 2.5,
                         ),
                       ),
-                      const SizedBox(width: 14),
+                      SizedBox(width: 14.w),
                       Expanded(
                         child: Text(
                           _text('analyzingNow', lang),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                          ),
+                          style: AppTextStyles.button,
                         ),
                       ),
                     ],
@@ -292,10 +303,10 @@ class _ImageAnalysisPageState extends State<ImageAnalysisPage> {
                 ),
               if (result.isNotEmpty && !isLoading)
                 Container(
-                  padding: const EdgeInsets.all(18),
+                  padding: EdgeInsets.all(18.r),
                   decoration: BoxDecoration(
                     color: const Color(0xFF24356F),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(16.r),
                     border: Border.all(
                       color: isErrorResult
                           ? Colors.orangeAccent
@@ -321,26 +332,18 @@ class _ImageAnalysisPageState extends State<ImageAnalysisPage> {
                                 : isAiResult
                                     ? Colors.redAccent
                                     : Colors.greenAccent,
-                            size: 28,
+                            size: 28.r,
                           ),
-                          const SizedBox(width: 10),
+                          SizedBox(width: 10.w),
                           Expanded(
                             child: Text(
                               result,
-                              style: TextStyle(
-                                color: isErrorResult
-                                    ? Colors.orangeAccent
-                                    : isAiResult
-                                        ? Colors.redAccent
-                                        : Colors.greenAccent,
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: AppTextStyles.button,
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 14),
+                      SizedBox(height: 14.h),
                       if (hasValidAnalysis) ...[
                         _resultLine(
                           label: _text('status', lang),
@@ -348,33 +351,34 @@ class _ImageAnalysisPageState extends State<ImageAnalysisPage> {
                               ? _text('suspicious', lang)
                               : _text('authentic', lang),
                         ),
-                        const SizedBox(height: 10),
+                        SizedBox(height: 10.h),
                         _resultLine(
                           label: _text('confidence', lang),
                           value: confidence,
                         ),
                         const SizedBox(height: 10),
                       ],
-                      _resultLine(
-                        label: _text('explanation', lang),
-                        value: reason,
-                        multiLine: true,
-                      ),
+                      if (reason.isNotEmpty)
+                        _resultLine(
+                          label: _text('explanation', lang),
+                          value: reason,
+                          multiLine: true,
+                        ),
                       if (isSaved) ...[
-                        const SizedBox(height: 12),
+                        SizedBox(height: 12.h),
                         Row(
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.history,
-                              size: 18,
+                              size: 18.r,
                               color: Colors.white70,
                             ),
-                            const SizedBox(width: 8),
+                            SizedBox(width: 8.w),
                             Text(
                               _text('savedToHistory', lang),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: Colors.white70,
-                                fontSize: 14,
+                                fontSize: 14.sp,
                               ),
                             ),
                           ],
@@ -385,6 +389,7 @@ class _ImageAnalysisPageState extends State<ImageAnalysisPage> {
                 ),
             ],
           ),
+        ),
         ),
       ),
     );
@@ -401,18 +406,18 @@ class _ImageAnalysisPageState extends State<ImageAnalysisPage> {
       children: [
         Text(
           "$label: ",
-          style: const TextStyle(
+          style: TextStyle(
             color: Colors.white,
-            fontSize: 16,
+            fontSize: 16.sp,
             fontWeight: FontWeight.w600,
           ),
         ),
         Expanded(
           child: Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               color: Colors.white70,
-              fontSize: 15,
+              fontSize: 15.sp,
               height: 1.4,
             ),
           ),

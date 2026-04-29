@@ -1,6 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../core/app_text_styles.dart';
+import '../core/app_styles.dart';
+import '../core/responsive_wrapper.dart';
 
 class HistoryPage extends StatelessWidget {
   const HistoryPage({super.key});
@@ -31,11 +35,11 @@ class HistoryPage extends StatelessWidget {
                             backgroundColor: const Color(0xFF24356F),
                             title: Text(
                               _text('deleteAllTitle', lang),
-                              style: const TextStyle(color: Colors.white),
+                                style: AppTextStyles.h3,
                             ),
                             content: Text(
                               _text('deleteAllMessage', lang),
-                              style: const TextStyle(color: Colors.white70),
+                                style: AppTextStyles.bodyMedium,
                             ),
                             actions: [
                               TextButton(
@@ -43,7 +47,7 @@ class HistoryPage extends StatelessWidget {
                                     Navigator.pop(context, false),
                                 child: Text(
                                   _text('cancel', lang),
-                                  style: const TextStyle(color: Colors.white70),
+                                  style: AppTextStyles.bodyMedium,
                                 ),
                               ),
                               TextButton(
@@ -51,8 +55,7 @@ class HistoryPage extends StatelessWidget {
                                     Navigator.pop(context, true),
                                 child: Text(
                                   _text('delete', lang),
-                                  style:
-                                      const TextStyle(color: Colors.redAccent),
+                                  style: AppTextStyles.bodyMedium.copyWith(color: Colors.redAccent),
                                 ),
                               ),
                             ],
@@ -108,14 +111,12 @@ class HistoryPage extends StatelessWidget {
         ),
         body: Directionality(
           textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
-          child: user == null
+          child: ResponsiveWrapper(
+            child: user == null
               ? Center(
                   child: Text(
                     _text('noUser', lang),
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 16,
-                    ),
+                      style: AppTextStyles.bodyMedium,
                   ),
                 )
               : StreamBuilder<QuerySnapshot>(
@@ -128,13 +129,10 @@ class HistoryPage extends StatelessWidget {
                     if (snapshot.hasError) {
                       return Center(
                         child: Padding(
-                          padding: const EdgeInsets.all(20),
+                          padding: EdgeInsets.all(20.r),
                           child: Text(
                             'Error:\n${snapshot.error}',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 14,
-                            ),
+                              style: AppTextStyles.bodySmall,
                             textAlign: TextAlign.center,
                           ),
                         ),
@@ -218,6 +216,7 @@ class HistoryPage extends StatelessWidget {
                     );
                   },
                 ),
+          ),
         ),
       ),
     );
@@ -241,19 +240,16 @@ class HistoryPage extends StatelessWidget {
       return Center(
         child: Text(
           _text('empty', lang),
-          style: const TextStyle(
-            color: Colors.white70,
-            fontSize: 16,
-          ),
+            style: AppTextStyles.bodyMedium,
         ),
       );
     }
 
     return Padding(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(20.r),
       child: ListView.separated(
         itemCount: filteredDocs.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 15),
+        separatorBuilder: (_, __) => SizedBox(height: 15.h),
         itemBuilder: (context, index) {
           final doc = filteredDocs[index];
           final data = doc.data() as Map<String, dynamic>;
@@ -290,14 +286,14 @@ final bool isAi =
             background: Container(
               decoration: BoxDecoration(
                 color: Colors.redAccent,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(16.r),
               ),
               alignment: Alignment.centerRight,
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: const Icon(
+              padding: EdgeInsets.symmetric(horizontal: 20.w),
+              child: Icon(
                 Icons.delete_outline,
                 color: Colors.white,
-                size: 28,
+                size: 28.r,
               ),
             ),
             confirmDismiss: (_) async {
@@ -502,13 +498,13 @@ class HistoryCard extends StatelessWidget {
     final Color color = isAi ? Colors.redAccent : Colors.greenAccent;
 
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: EdgeInsets.all(18.r),
       decoration: BoxDecoration(
         color: const Color(0xFF24356F),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
         border: Border.all(
           color: color,
-          width: 1.3,
+          width: 1.3.w,
         ),
       ),
       child: Row(
@@ -517,9 +513,9 @@ class HistoryCard extends StatelessWidget {
           Icon(
             isAi ? Icons.smart_toy_outlined : Icons.verified_outlined,
             color: color,
-            size: 28,
+            size: 28.r,
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12.w),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -529,9 +525,9 @@ class HistoryCard extends StatelessWidget {
                     Expanded(
                       child: Text(
                         title,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
-                          fontSize: 17,
+                          fontSize: 17.sp,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -570,7 +566,7 @@ class HistoryCard extends StatelessWidget {
                                       Navigator.pop(context, true),
                                   child: Text(
                                     lang == 'ar' ? 'حذف' : 'Delete',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                         color: Colors.redAccent),
                                   ),
                                 ),
@@ -601,54 +597,55 @@ class HistoryCard extends StatelessWidget {
                           ),
                         );
                       },
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.delete_outline,
                         color: Colors.white70,
-                        size: 20,
+                        size: 20.r,
                       ),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                     ),
                   ],
                 ),
-                const SizedBox(height: 6),
+                SizedBox(height: 6.h),
                 Text(
                   result,
                   style: TextStyle(
                     color: color,
                     fontWeight: FontWeight.w600,
-                    fontSize: 16,
+                    fontSize: 16.sp,
                   ),
                 ),
-                const SizedBox(height: 6),
+                SizedBox(height: 6.h),
                 Text(
                   "${lang == 'ar' ? 'الثقة' : 'Confidence'}: $confidence",
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Colors.white,
+                    fontSize: 14.sp,
                   ),
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: 4.h),
                 Text(
                   date,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Colors.white54,
-                    fontSize: 13,
+                    fontSize: 13.sp,
                   ),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8.h),
                 Text(
                   note,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Colors.white70,
-                    fontSize: 14,
+                    fontSize: 14.sp,
                   ),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8.h),
                 Text(
                   _typeLabel(type, lang),
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Colors.white54,
-                    fontSize: 12,
+                    fontSize: 12.sp,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
