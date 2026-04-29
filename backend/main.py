@@ -229,8 +229,14 @@ def analyze_image(file: UploadFile = File(...)):
 
         ai_score = float(result_json.get("type", {}).get("ai_generated", 0.0)) * 100
 
+        result = "Likely AI Generated" if ai_score >= 50 else "Likely Human Written"
+        confidence = f"{ai_score:.2f}%"
+        reason = "Visual GenAI indicators detected" if ai_score >= 50 else "Natural visual patterns detected"
+
         return {
-            "ai_score": ai_score,
+            "result": result,
+            "confidence": confidence,
+            "reason": reason,
             "raw": result_json
         }
 
@@ -283,8 +289,14 @@ async def analyze_video(file: UploadFile = File(...)):
 
         ai_score = float(result_json.get("type", {}).get("ai_generated", 0.0)) * 100
 
+        result = "Likely AI Generated" if ai_score >= 50 else "Likely Human Written"
+        confidence = f"{ai_score:.2f}%"
+        reason = "Visual GenAI indicators detected in video frames" if ai_score >= 50 else "Natural video patterns detected"
+
         return {
-            "ai_score": ai_score,
+            "result": result,
+            "confidence": confidence,
+            "reason": reason,
             "raw": result_json,
             "message": "Analyzed middle frame of the video"
         }

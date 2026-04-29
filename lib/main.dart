@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'firebase_options.dart';
 import 'pages/start_page.dart';
 import 'pages/home_page.dart';
@@ -35,32 +36,39 @@ class _UnveilAppState extends State<UnveilApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Unveil',
-      locale: _locale,
-      supportedLocales: const [
-        Locale('en'),
-        Locale('ar'),
-        Locale('es'),
-        Locale('fr'),
-        Locale('zh'),
-        Locale('hi'),
-      ],
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      theme: ThemeData(
-        useMaterial3: true,
-        scaffoldBackgroundColor: const Color(0xFF18245C),
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFFF5A623),
-          brightness: Brightness.dark,
-        ),
-      ),
-      home: const AuthGate(),
+    return ScreenUtilInit(
+      designSize: const Size(412, 915),
+      minTextAdapt: false,
+      splitScreenMode: false,
+      builder: (context, child) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'Unveil',
+          locale: _locale,
+          supportedLocales: const [
+            Locale('en'),
+            Locale('ar'),
+            Locale('es'),
+            Locale('fr'),
+            Locale('zh'),
+            Locale('hi'),
+          ],
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          theme: ThemeData(
+            useMaterial3: true,
+            scaffoldBackgroundColor: const Color(0xFF18245C),
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color(0xFFF5A623),
+              brightness: Brightness.dark,
+            ),
+          ),
+          home: const AuthGate(),
+        );
+      },
     );
   }
 }

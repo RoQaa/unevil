@@ -1,6 +1,15 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'history_service.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import '../core/app_text_styles.dart';
+import '../core/app_styles.dart';
+import '../core/responsive_wrapper.dart';
 
 class VideoAnalysisPage extends StatefulWidget {
   const VideoAnalysisPage({super.key});
@@ -13,27 +22,43 @@ class VideoAnalysisPage extends StatefulWidget {
 class _VideoAnalysisPageState
     extends State<VideoAnalysisPage> {
   String fileName = "";
+  Uint8List? videoBytes;
   String result = "";
   String confidence = "";
   String reason = "";
   bool isLoading = false;
   bool isSaved = false;
+  bool hasValidAnalysis = false;
 
   Future<void> chooseVideo() async {
     FilePickerResult? picked =
         await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['mp4', 'mov', 'avi'],
+      withData: true,
     );
 
     if (picked != null) {
-      setState(() {
-        fileName = picked.files.single.name;
-        result = "";
-        confidence = "";
-        reason = "";
-        isSaved = false;
-      });
+      final file = picked.files.single;
+      Uint8List? bytes = file.bytes;
+
+      // On mobile/desktop, if bytes is null, read from path
+      if (bytes == null && !kIsWeb && file.path != null) {
+        final fileObj = File(file.path!);
+        bytes = await fileObj.readAsBytes();
+      }
+
+      if (bytes != null) {
+        setState(() {
+          fileName = file.name;
+          videoBytes = bytes;
+          result = "";
+          confidence = "";
+          reason = "";
+          isSaved = false;
+          hasValidAnalysis = false;
+        });
+      }
     }
   }
 
@@ -51,6 +76,17 @@ class _VideoAnalysisPageState
       return;
     }
 
+    final String extension = fileName.split('.').last.toLowerCase();
+    if (!['mp4', 'mov', 'avi', 'mkv', 'webm'].contains(extension)) {
+      setState(() {
+        result = lang == 'ar' ? 'ملف غير صالح' : 'Invalid file';
+        confidence = "";
+        reason = lang == 'ar' ? 'يرجى اختيار ملف فيديو فقط' : 'Please choose a video file only';
+        isSaved = false;
+      });
+      return;
+    }
+
     setState(() {
       isLoading = true;
       result = "";
@@ -59,39 +95,66 @@ class _VideoAnalysisPageState
       isSaved = false;
     });
 
-    await Future.delayed(const Duration(seconds: 2));
+    try {
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse('http://127.0.0.1:8000/analyze-video'),
+      );
 
-    if (fileName.toLowerCase().contains("ai") ||
-        fileName.toLowerCase().contains("fake")) {
+      if (videoBytes != null) {
+        request.files.add(
+          http.MultipartFile.fromBytes(
+            'file',
+            videoBytes!,
+            filename: fileName,
+          ),
+        );
+      }
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+
+        final String apiResult = data['result'] ?? '';
+        final String apiConfidence = data['confidence'] ?? '';
+        final String apiReason = data['reason'] ?? '';
+
+        setState(() {
+          result = apiResult;
+          confidence = apiConfidence;
+          reason = apiReason;
+          isLoading = false;
+          hasValidAnalysis = true;
+        });
+
+        await HistoryService.saveHistory(
+          type: 'video',
+          titleKey: _text('title', lang),
+          resultKey: apiResult,
+          confidence: apiConfidence,
+          noteKey: apiReason,
+        );
+      } else {
+        setState(() {
+          result = _text('serverError', lang);
+          confidence = "";
+          reason = _text('tryAgain', lang);
+          isLoading = false;
+          isSaved = false;
+          hasValidAnalysis = false;
+        });
+      }
+    } catch (e) {
       setState(() {
-        result = _text('likelyAI', lang);
-        confidence = "88%";
-        reason = _text('aiReason', lang);
+        result = _text('connectionFailed', lang);
+        confidence = "";
+        reason = _text('backendNote', lang);
         isLoading = false;
+        isSaved = false;
+        hasValidAnalysis = false;
       });
-
-await HistoryService.saveHistory(
-  type: 'video',
-  titleKey: 'title',
-  resultKey: 'likelyAI',
-  confidence: "88%",
-  noteKey: 'aiReason',
-);
-    } else {
-      setState(() {
-        result = _text('likelyReal', lang);
-        confidence = "82%";
-        reason = _text('realReason', lang);
-        isLoading = false;
-      });
-
-await HistoryService.saveHistory(
-  type: 'video',
-  titleKey: 'title',
-  resultKey: 'likelyReal',
-  confidence: "82%",
-  noteKey: 'realReason',
-);
     }
 
     if (!mounted) return;
@@ -114,11 +177,13 @@ await HistoryService.saveHistory(
 
     setState(() {
       fileName = "";
+      videoBytes = null;
       result = "";
       confidence = "";
       reason = "";
       isLoading = false;
       isSaved = false;
+      hasValidAnalysis = false;
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -148,35 +213,36 @@ await HistoryService.saveHistory(
             isArabic ? TextDirection.rtl : TextDirection.ltr,
         child: Padding(
           padding: const EdgeInsets.all(20),
-          child: ListView(
-            children: [
+          child: ResponsiveWrapper(
+            child: ListView(
+              children: [
               Text(
                 _text('upload', lang),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                ),
+                style: AppTextStyles.h1.copyWith(fontSize: 24.sp),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20.h),
               SizedBox(
-                height: 52,
+                height: AppStyles.buttonHeight,
                 child: ElevatedButton.icon(
                   onPressed: chooseVideo,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFF5A623),
                     foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppStyles.borderRadius),
+                    ),
                   ),
                   icon: const Icon(Icons.video_file),
                   label: Text(_text('choose', lang)),
                 ),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20.h),
               if (fileName.isNotEmpty)
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.all(16.r),
                   decoration: BoxDecoration(
                     color: const Color(0xFF24356F),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(AppStyles.borderRadius),
                   ),
                   child: Text(
                     fileName,
@@ -185,73 +251,79 @@ await HistoryService.saveHistory(
                     ),
                   ),
                 ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20.h),
               Row(
                 children: [
                   Expanded(
                     child: SizedBox(
-                      height: 52,
+                      height: AppStyles.buttonHeight,
                       child: ElevatedButton(
                         onPressed:
                             isLoading ? null : analyzeVideo,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFB8A7FF),
                           foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(AppStyles.borderRadius),
+                          ),
                         ),
                         child: isLoading
-                            ? const SizedBox(
-                                height: 24,
-                                width: 24,
+                            ? SizedBox(
+                                height: 24.h,
+                                width: 24.w,
                                 child:
                                     CircularProgressIndicator(
                                   color: Colors.white,
-                                  strokeWidth: 2.5,
+                                  strokeWidth: 2.5.w,
                                 ),
                               )
                             : Text(_text('analyze', lang)),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12.w),
                   SizedBox(
-                    height: 52,
+                    height: AppStyles.buttonHeight,
                     child: OutlinedButton(
                       onPressed: clearVideo,
                       style: OutlinedButton.styleFrom(
-                        side: const BorderSide(
-                            color: Colors.white24),
+                        side: BorderSide(
+                            color: Colors.white24, width: 1.w),
                         foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(AppStyles.borderRadius),
+                        ),
                       ),
                       child: Text(_text('clear', lang)),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: 24.h),
               if (isLoading)
                 Container(
-                  padding: const EdgeInsets.all(18),
+                  padding: EdgeInsets.all(18.r),
                   decoration: BoxDecoration(
                     color: const Color(0xFF24356F),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(AppStyles.borderRadius),
                   ),
                   child: Row(
                     children: [
-                      const SizedBox(
-                        height: 24,
-                        width: 24,
+                      SizedBox(
+                        height: 24.h,
+                        width: 24.w,
                         child: CircularProgressIndicator(
-                          color: Color(0xFFF5A623),
-                          strokeWidth: 2.5,
+                          color: const Color(0xFFF5A623),
+                          strokeWidth: 2.5.w,
                         ),
                       ),
-                      const SizedBox(width: 14),
+                      SizedBox(width: 14.w),
                       Expanded(
                         child: Text(
                           _text('analyzingNow', lang),
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: Colors.white,
-                            fontSize: 16,
+                            fontSize: 16.sp,
                           ),
                         ),
                       ),
@@ -260,14 +332,15 @@ await HistoryService.saveHistory(
                 ),
               if (result.isNotEmpty && !isLoading)
                 Container(
-                  padding: const EdgeInsets.all(18),
+                  padding: EdgeInsets.all(18.r),
                   decoration: BoxDecoration(
                     color: const Color(0xFF24356F),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(16.r),
                     border: Border.all(
                       color: isAiResult
                           ? Colors.redAccent
                           : Colors.greenAccent,
+                      width: 1.w,
                     ),
                   ),
                   child: Column(
@@ -283,9 +356,9 @@ await HistoryService.saveHistory(
                             color: isAiResult
                                 ? Colors.redAccent
                                 : Colors.greenAccent,
-                            size: 28,
+                            size: 28.r,
                           ),
-                          const SizedBox(width: 10),
+                          SizedBox(width: 10.w),
                           Expanded(
                             child: Text(
                               result,
@@ -293,46 +366,47 @@ await HistoryService.saveHistory(
                                 color: isAiResult
                                     ? Colors.redAccent
                                     : Colors.greenAccent,
-                                fontSize: 22,
+                                fontSize: 22.sp,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 14),
+                      SizedBox(height: 14.h),
                       _resultLine(
                         label: _text('status', lang),
                         value: isAiResult
                             ? _text('suspicious', lang)
                             : _text('authentic', lang),
                       ),
-                      const SizedBox(height: 10),
+                      SizedBox(height: 10.h),
                       _resultLine(
                         label: _text('confidence', lang),
                         value: confidence,
                       ),
-                      const SizedBox(height: 10),
-                      _resultLine(
-                        label: _text('explanation', lang),
-                        value: reason,
-                        multiLine: true,
-                      ),
+                      SizedBox(height: 10.h),
+                      if (reason.isNotEmpty)
+                        _resultLine(
+                          label: _text('explanation', lang),
+                          value: reason,
+                          multiLine: true,
+                        ),
                       if (isSaved) ...[
-                        const SizedBox(height: 12),
+                        SizedBox(height: 12.h),
                         Row(
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.history,
-                              size: 18,
+                              size: 18.r,
                               color: Colors.white70,
                             ),
-                            const SizedBox(width: 8),
+                            SizedBox(width: 8.w),
                             Text(
                               _text('savedToHistory', lang),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: Colors.white70,
-                                fontSize: 14,
+                                fontSize: 14.sp,
                               ),
                             ),
                           ],
@@ -343,6 +417,7 @@ await HistoryService.saveHistory(
                 ),
             ],
           ),
+        ),
         ),
       ),
     );
@@ -359,18 +434,18 @@ await HistoryService.saveHistory(
       children: [
         Text(
           "$label: ",
-          style: const TextStyle(
+          style: TextStyle(
             color: Colors.white,
-            fontSize: 16,
+            fontSize: 16.sp,
             fontWeight: FontWeight.w600,
           ),
         ),
         Expanded(
           child: Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               color: Colors.white70,
-              fontSize: 15,
+              fontSize: 15.sp,
               height: 1.4,
             ),
           ),
@@ -456,6 +531,22 @@ await HistoryService.saveHistory(
       'cleared': {
         'en': 'Video cleared',
         'ar': 'تم مسح الفيديو',
+      },
+      'connectionFailed': {
+        'en': 'Connection failed',
+        'ar': 'فشل الاتصال',
+      },
+      'backendNote': {
+        'en': 'Make sure the backend server is running.',
+        'ar': 'تأكدي أن سيرفر الخلفية شغال.',
+      },
+      'serverError': {
+        'en': 'Server error',
+        'ar': 'خطأ في السيرفر',
+      },
+      'tryAgain': {
+        'en': 'Please try again.',
+        'ar': 'حاولي مرة أخرى.',
       },
     };
 

@@ -1,8 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../main.dart';
 import 'login_page.dart';
+import '../core/app_text_styles.dart';
+import '../core/responsive_wrapper.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -30,56 +33,41 @@ class ProfilePage extends StatelessWidget {
             ? Center(
                 child: Text(
                   _text('noUser', lang),
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 16,
-                  ),
+                  style: AppTextStyles.bodyMedium,
                 ),
               )
             : FutureBuilder<DocumentSnapshot>(
-                future: FirebaseFirestore
-                    .instance
+                future: FirebaseFirestore.instance
                     .collection('users')
                     .doc(user.uid)
-                    .collection('profile')
-                    .doc('info')
                     .get(),
                 builder: (context, profileSnapshot) {
-                  final profileData =
-                      profileSnapshot.data?.data()
-                          as Map<String, dynamic>?;
+                  if (profileSnapshot.hasError) {
+                    return Center(
+                      child: Text(
+                        _text('errorLoading', lang),
+                        style: AppTextStyles.bodySmall,
+                      ),
+                    );
+                  }
+                  if (profileSnapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator(color: Color(0xFFF5A623)));
+                  }
+                  final profileData = profileSnapshot.data?.data() as Map<String, dynamic>?;
 
-                  final String fullName =
-                      profileData?['fullName'] ??
-                          '--';
+                  final String fullName = profileData?['fullName'] ?? '--';
+                  final String age = profileData?['age']?.toString() ?? '--';
+                  final String gender = profileData?['gender'] ?? '--';
 
-                  final String age =
-                      profileData?['age']
-                              ?.toString() ??
-                          '--';
-
-                  final String gender =
-                      profileData?['gender'] ??
-                          '--';
-
-                  return StreamBuilder<
-                      QuerySnapshot>(
-                    stream:
-                        FirebaseFirestore
-                            .instance
-                            .collection(
-                                'users')
-                            .doc(user.uid)
-                            .collection(
-                                'history')
-                            .snapshots(),
-                    builder: (context,
-                        historySnapshot) {
-                      final docs =
-                          historySnapshot
-                                  .data
-                                  ?.docs ??
-                              [];
+                  return StreamBuilder<QuerySnapshot>(
+                    stream: FirebaseFirestore.instance
+                        .collection('users')
+                        .doc(user.uid)
+                        .collection('history')
+                        .snapshots(),
+                    builder: (context, historySnapshot) {
+                      // Even if history fails, we still show the profile info
+                      final docs = historySnapshot.data?.docs ?? [];
 
                       int textCount = 0;
                       int imageCount = 0;
@@ -87,60 +75,37 @@ class ProfilePage extends StatelessWidget {
                       int videoCount = 0;
 
                       for (final doc in docs) {
-                        final data =
-                            doc.data()
-                                as Map<String,
-                                    dynamic>;
-
-                        final type =
-                            data['type'];
-
-                        if (type ==
-                            'text') {
-                          textCount++;
-                        }
-
-                        if (type ==
-                            'image') {
-                          imageCount++;
-                        }
-
-                        if (type ==
-                            'audio') {
-                          audioCount++;
-                        }
-
-                        if (type ==
-                            'video') {
-                          videoCount++;
-                        }
+                        final data = doc.data() as Map<String, dynamic>?;
+                        if (data == null) continue;
+                        
+                        final type = data['type'];
+                        if (type == 'text') textCount++;
+                        else if (type == 'image') imageCount++;
+                        else if (type == 'audio') audioCount++;
+                        else if (type == 'video') videoCount++;
                       }
 
                       return Padding(
-                        padding:
-                            const EdgeInsets.all(
-                                20),
-                        child: ListView(
-                          children: [
-                            const Center(
+                        padding: const EdgeInsets.all(20),
+                        child: ResponsiveWrapper(
+                          child: ListView(
+                            children: [
+                            Center(
                               child:
                                   CircleAvatar(
-                                radius: 42,
-                                backgroundColor:
-                                    Color(
-                                        0xFFF5A623),
+                                radius: 40.r,
+                                backgroundColor: const Color(0xFFF5A623),
                                 child: Icon(
                                   Icons.person,
-                                  color: Colors
-                                      .white,
-                                  size: 40,
+                                  color: Colors.white,
+                                  size: 40.r,
                                 ),
                               ),
                             ),
 
-                            const SizedBox(
+                            SizedBox(
                                 height:
-                                    20),
+                                    20.h),
 
                             _infoCard(
                               icon: Icons
@@ -152,9 +117,9 @@ class ProfilePage extends StatelessWidget {
                                   fullName,
                             ),
 
-                            const SizedBox(
+                            SizedBox(
                                 height:
-                                    14),
+                                    14.h),
 
                             _infoCard(
                               icon: Icons
@@ -167,9 +132,9 @@ class ProfilePage extends StatelessWidget {
                                       '--',
                             ),
 
-                            const SizedBox(
+                            SizedBox(
                                 height:
-                                    14),
+                                    14.h),
 
                             _infoCard(
                               icon: Icons
@@ -183,9 +148,9 @@ class ProfilePage extends StatelessWidget {
                                       lang),
                             ),
 
-                            const SizedBox(
+                            SizedBox(
                                 height:
-                                    14),
+                                    14.h),
 
                             _infoCard(
                               icon: Icons
@@ -197,21 +162,15 @@ class ProfilePage extends StatelessWidget {
                                   age,
                             ),
 
-                            const SizedBox(
+                            SizedBox(
                                 height:
-                                    18),
+                                    18.h),
 
                             Container(
-                              padding:
-                                  const EdgeInsets.all(
-                                      20),
-                              decoration:
-                                  BoxDecoration(
-                                color: const Color(
-                                    0xFF24356F),
-                                borderRadius:
-                                    BorderRadius.circular(
-                                        18),
+                              padding: EdgeInsets.all(20.r),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF24356F),
+                                borderRadius: BorderRadius.circular(18.r),
                               ),
                               child:
                                   Column(
@@ -221,38 +180,22 @@ class ProfilePage extends StatelessWidget {
                                 children: [
                                   Row(
                                     children: [
-                                      const Icon(
-                                        Icons
-                                            .analytics_outlined,
-                                        color:
-                                            Color(
-                                                0xFFF5A623),
-                                        size:
-                                            24,
+                                      Icon(
+                                        Icons.analytics_outlined,
+                                        color: const Color(0xFFF5A623),
+                                        size: 24.r,
                                       ),
-                                      const SizedBox(
-                                          width:
-                                              10),
+                                      SizedBox(height: 10.h),
                                       Text(
-                                        _text(
-                                            'statistics',
-                                            lang),
-                                        style:
-                                            const TextStyle(
-                                          color:
-                                              Colors.white,
-                                          fontSize:
-                                              17,
-                                          fontWeight:
-                                              FontWeight.bold,
-                                        ),
+                                        _text('statistics', lang),
+                                        style: AppTextStyles.h3,
                                       ),
                                     ],
                                   ),
 
-                                  const SizedBox(
+                                  SizedBox(
                                       height:
-                                          16),
+                                          16.h),
 
                                   _statRow(
                                     _text(
@@ -262,9 +205,9 @@ class ProfilePage extends StatelessWidget {
                                         .toString(),
                                   ),
 
-                                  const SizedBox(
+                                  SizedBox(
                                       height:
-                                          10),
+                                          10.h),
 
                                   _statRow(
                                     _text(
@@ -274,9 +217,9 @@ class ProfilePage extends StatelessWidget {
                                         .toString(),
                                   ),
 
-                                  const SizedBox(
+                                  SizedBox(
                                       height:
-                                          10),
+                                          10.h),
 
                                   _statRow(
                                     _text(
@@ -286,9 +229,9 @@ class ProfilePage extends StatelessWidget {
                                         .toString(),
                                   ),
 
-                                  const SizedBox(
+                                  SizedBox(
                                       height:
-                                          10),
+                                          10.h),
 
                                   _statRow(
                                     _text(
@@ -298,9 +241,9 @@ class ProfilePage extends StatelessWidget {
                                         .toString(),
                                   ),
 
-                                  const SizedBox(
+                                  SizedBox(
                                       height:
-                                          10),
+                                          10.h),
 
                                   _statRow(
                                     _text(
@@ -313,23 +256,24 @@ class ProfilePage extends StatelessWidget {
                               ),
                             ),
 
-                            const SizedBox(
+                            SizedBox(
                                 height:
-                                    18),
+                                    18.h),
 
                             _languageCard(
                                 context,
                                 lang),
 
-                            const SizedBox(
+                            SizedBox(
                                 height:
-                                    14),
+                                    14.h),
 
                             _logoutCard(
                                 context,
                                 lang),
                           ],
                         ),
+                      ),
                       );
                     },
                   );
@@ -346,29 +290,25 @@ class ProfilePage extends StatelessWidget {
   }) {
     return Container(
       padding:
-          const EdgeInsets.all(18),
+          EdgeInsets.all(16.r),
       decoration: BoxDecoration(
         color:
             const Color(0xFF24356F),
-        borderRadius:
-            BorderRadius.circular(
-                18),
+        borderRadius: BorderRadius.circular(18.r),
       ),
       child: Row(
         children: [
           CircleAvatar(
-            radius: 22,
-            backgroundColor:
-                Colors.white12,
+            radius: 20.r,
+            backgroundColor: Colors.white12,
             child: Icon(
               icon,
-              color: const Color(
-                  0xFFF5A623),
-              size: 22,
+              color: const Color(0xFFF5A623),
+              size: 20.r,
             ),
           ),
 
-          const SizedBox(width: 14),
+          SizedBox(width: 14.w),
 
           Expanded(
             child: Column(
@@ -378,28 +318,15 @@ class ProfilePage extends StatelessWidget {
               children: [
                 Text(
                   label,
-                  style:
-                      const TextStyle(
-                    color: Colors
-                        .white70,
-                    fontSize: 13,
-                  ),
+                  style: AppTextStyles.labelMedium,
                 ),
 
-                const SizedBox(
-                    height: 4),
+                SizedBox(
+                    height: 4.h),
 
                 Text(
                   value,
-                  style:
-                      const TextStyle(
-                    color: Colors
-                        .white,
-                    fontSize: 16,
-                    fontWeight:
-                        FontWeight
-                            .w600,
-                  ),
+                  style: AppTypography.bodySmall,
                 ),
               ],
             ),
@@ -415,39 +342,27 @@ class ProfilePage extends StatelessWidget {
   ) {
     return Container(
       padding:
-          const EdgeInsets.symmetric(
-        horizontal: 14,
-        vertical: 12,
+          EdgeInsets.symmetric(
+        horizontal: 14.w,
+        vertical: 12.h,
       ),
       decoration: BoxDecoration(
         color: Colors.white10,
         borderRadius:
             BorderRadius.circular(
-                14),
+                14.r),
       ),
       child: Row(
         children: [
           Expanded(
             child: Text(
               label,
-              style:
-                  const TextStyle(
-                color:
-                    Colors.white70,
-                fontSize: 15,
-              ),
+                style: AppTextStyles.bodyMedium.copyWith(fontSize: 15.sp),
             ),
           ),
           Text(
             value,
-            style:
-                const TextStyle(
-              color: Color(
-                  0xFFF5A623),
-              fontSize: 18,
-              fontWeight:
-                  FontWeight.bold,
-            ),
+              style: AppTextStyles.h3.copyWith(color: const Color(0xFFF5A623), fontWeight: FontWeight.bold),
           ),
         ],
       ),
@@ -460,43 +375,33 @@ class ProfilePage extends StatelessWidget {
   ) {
     return Container(
       padding:
-          const EdgeInsets.all(18),
+          EdgeInsets.all(16.r),
       decoration: BoxDecoration(
         color:
             const Color(0xFF24356F),
-        borderRadius:
-            BorderRadius.circular(
-                18),
+        borderRadius: BorderRadius.circular(18.r),
       ),
       child: Row(
         children: [
-          const CircleAvatar(
-            radius: 22,
+          CircleAvatar(
+            radius: 20.r,
             backgroundColor:
                 Colors.white12,
             child: Icon(
               Icons.language,
-              color: Color(
-                  0xFFF5A623),
-              size: 22,
+              color: const Color(0xFFF5A623),
+              size: 20.r,
             ),
           ),
 
-          const SizedBox(width: 14),
+          SizedBox(width: 14.w),
 
           Expanded(
             child: Text(
               _text(
                   'language',
                   lang),
-              style:
-                  const TextStyle(
-                color:
-                    Colors.white,
-                fontSize: 16,
-                fontWeight:
-                    FontWeight.w600,
-              ),
+                      style: AppTextStyles.h2.copyWith(fontSize: 18.sp),
             ),
           ),
 
@@ -520,33 +425,27 @@ class ProfilePage extends StatelessWidget {
                     const [
               PopupMenuItem(
                 value: 'en',
-                child: Text(
-                    'English'),
+                child: Text('English', style: TextStyle(color: Colors.black)),
               ),
               PopupMenuItem(
                 value: 'ar',
-                child: Text(
-                    'العربية'),
+                child: Text('العربية', style: TextStyle(color: Colors.black)),
               ),
               PopupMenuItem(
                 value: 'es',
-                child: Text(
-                    'Español'),
+                child: Text('Español', style: TextStyle(color: Colors.black)),
               ),
               PopupMenuItem(
                 value: 'fr',
-                child: Text(
-                    'Français'),
+                child: Text('Français', style: TextStyle(color: Colors.black)),
               ),
               PopupMenuItem(
                 value: 'zh',
-                child: Text(
-                    '中文'),
+                child: Text('中文', style: TextStyle(color: Colors.black)),
               ),
               PopupMenuItem(
                 value: 'hi',
-                child: Text(
-                    'हिन्दी'),
+                child: Text('हिन्दी', style: TextStyle(color: Colors.black)),
               ),
             ],
           ),
@@ -592,35 +491,26 @@ class ProfilePage extends StatelessWidget {
         ),
         child: Row(
           children: [
-            const CircleAvatar(
-              radius: 22,
+            CircleAvatar(
+              radius: 22.r,
               backgroundColor:
                   Colors.white12,
               child: Icon(
                 Icons.logout,
-                color: Colors
-                    .redAccent,
-                size: 22,
+                color: Colors.redAccent,
+                size: 22.r,
               ),
             ),
 
-            const SizedBox(
-                width: 14),
+            SizedBox(
+                width: 14.w),
 
             Expanded(
               child: Text(
                 _text(
                     'logout',
                     lang),
-                style:
-                    const TextStyle(
-                  color: Colors
-                      .white,
-                  fontSize: 16,
-                  fontWeight:
-                      FontWeight
-                          .w600,
-                ),
+                style: AppTypography.bodySmall,
               ),
             ),
 
@@ -649,6 +539,14 @@ class ProfilePage extends StatelessWidget {
       'Female': {
         'en': 'Female',
         'ar': 'أنثى',
+      },
+      'Other': {
+        'en': 'Other',
+        'ar': 'آخر',
+      },
+      'Prefer not to say': {
+        'en': 'Prefer not to say',
+        'ar': 'أفضل عدم القول',
       },
       '--': {
         'en': '--',
@@ -738,6 +636,10 @@ class ProfilePage extends StatelessWidget {
             'Video Analyses',
         'ar':
             'تحليلات الفيديو',
+      },
+      'errorLoading': {
+        'en': 'Error loading profile',
+        'ar': 'خطأ في تحميل البيانات',
       },
     };
 

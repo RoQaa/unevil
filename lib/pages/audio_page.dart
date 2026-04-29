@@ -1,9 +1,13 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
 import 'history_service.dart';
+import '../core/app_text_styles.dart';
+import '../core/app_styles.dart';
+import '../core/responsive_wrapper.dart';
 
 class AudioAnalysisPage extends StatefulWidget {
   const AudioAnalysisPage({super.key});
@@ -66,6 +70,17 @@ class _AudioAnalysisPageState extends State<AudioAnalysisPage> {
       return;
     }
 
+    final String extension = fileName.split('.').last.toLowerCase();
+    if (!['mp3', 'wav', 'm4a', 'aac', 'ogg'].contains(extension)) {
+      setState(() {
+        result = lang == 'ar' ? 'ملف غير صالح' : 'Invalid file';
+        confidence = "";
+        reason = lang == 'ar' ? 'يرجى اختيار ملف صوتب فقط' : 'Please choose an audio file only';
+        isSaved = false;
+      });
+      return;
+    }
+
     setState(() {
       isLoading = true;
       result = "";
@@ -80,14 +95,21 @@ class _AudioAnalysisPageState extends State<AudioAnalysisPage> {
     });
 
     try {
-      final response = await http.post(
+      var request = http.MultipartRequest(
+        'POST',
         Uri.parse('http://127.0.0.1:8000/analyze-audio'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'audio_base64': base64Encode(audioBytes!),
-          'file_name': fileName,
-        }),
       );
+
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          'file',
+          audioBytes!,
+          filename: fileName,
+        ),
+      );
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
 
       final data = jsonDecode(response.body);
 
@@ -105,10 +127,10 @@ class _AudioAnalysisPageState extends State<AudioAnalysisPage> {
 
       await HistoryService.saveHistory(
         type: 'audio',
-        title: _text('title', lang),
-        result: result,
+        titleKey: _text('title', lang),
+        resultKey: result,
         confidence: confidence,
-        note: reason,
+        noteKey: reason,
       );
 
       if (!mounted) return;
@@ -289,58 +311,65 @@ final bool isFailedResult =
         textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
         child: Padding(
           padding: const EdgeInsets.all(20),
-          child: ListView(
-            children: [
+          child: ResponsiveWrapper(
+            child: ListView(
+              children: [
               Text(
                 _text('upload', lang),
-                style: const TextStyle(
+                style: TextStyle(
                   color: Colors.white,
-                  fontSize: 18,
+                  fontSize: 18.sp,
                 ),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20.h),
               SizedBox(
-                height: 52,
+                height: AppStyles.buttonHeight,
                 child: ElevatedButton.icon(
                   onPressed: chooseAudio,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFF5A623),
                     foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppStyles.borderRadius),
+                    ),
                   ),
                   icon: const Icon(Icons.audio_file),
                   label: Text(_text('choose', lang)),
                 ),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20.h),
               if (fileName.isNotEmpty)
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.all(16.r),
                   decoration: BoxDecoration(
                     color: const Color(0xFF24356F),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(AppStyles.borderRadius),
                   ),
                   child: Text(
                     fileName,
                     style: const TextStyle(color: Colors.white),
                   ),
                 ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20.h),
               Row(
                 children: [
                   Expanded(
                     child: SizedBox(
-                      height: 52,
+                      height: AppStyles.buttonHeight,
                       child: ElevatedButton(
                         onPressed: isLoading ? null : analyzeAudio,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFB8A7FF),
                           foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(AppStyles.borderRadius),
+                          ),
                         ),
                         child: isLoading
-                            ? const SizedBox(
-                                height: 24,
-                                width: 24,
-                                child: CircularProgressIndicator(
+                            ? SizedBox(
+                                height: 24.r,
+                                width: 24.r,
+                                child: const CircularProgressIndicator(
                                   color: Colors.white,
                                   strokeWidth: 2.5,
                                 ),
@@ -349,23 +378,26 @@ final bool isFailedResult =
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12.w),
                   SizedBox(
-                    height: 52,
+                    height: AppStyles.buttonHeight,
                     child: OutlinedButton(
                       onPressed: clearAudio,
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: Colors.white24),
                         foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(AppStyles.borderRadius),
+                        ),
                       ),
                       child: Text(_text('clear', lang)),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12.h),
               SizedBox(
-                height: 48,
+                height: 48.h,
                 child: OutlinedButton.icon(
                   onPressed: isExtraLoading ? null : analyzeAudioWithHive,
                   style: OutlinedButton.styleFrom(
@@ -373,10 +405,10 @@ final bool isFailedResult =
                     foregroundColor: Colors.white,
                   ),
                   icon: isExtraLoading
-                      ? const SizedBox(
-                          height: 18,
-                          width: 18,
-                          child: CircularProgressIndicator(
+                      ? SizedBox(
+                          height: 18.r,
+                          width: 18.r,
+                          child: const CircularProgressIndicator(
                             strokeWidth: 2,
                             color: Colors.white,
                           ),
@@ -385,31 +417,31 @@ final bool isFailedResult =
                   label: Text(_text('extraCheckHive', lang)),
                 ),
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: 24.h),
               if (isLoading)
                 Container(
-                  padding: const EdgeInsets.all(18),
+                  padding: EdgeInsets.all(18.r),
                   decoration: BoxDecoration(
                     color: const Color(0xFF24356F),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(16.r),
                   ),
                   child: Row(
                     children: [
-                      const SizedBox(
-                        height: 24,
-                        width: 24,
-                        child: CircularProgressIndicator(
+                      SizedBox(
+                        height: 24.r,
+                        width: 24.r,
+                        child: const CircularProgressIndicator(
                           color: Color(0xFFF5A623),
                           strokeWidth: 2.5,
                         ),
                       ),
-                      const SizedBox(width: 14),
+                      SizedBox(width: 14.w),
                       Expanded(
                         child: Text(
                           _text('analyzingNow', lang),
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: Colors.white,
-                            fontSize: 16,
+                            fontSize: 16.sp,
                           ),
                         ),
                       ),
@@ -418,10 +450,10 @@ final bool isFailedResult =
                 ),
               if (result.isNotEmpty && !isLoading)
                 Container(
-                  padding: const EdgeInsets.all(18),
+                  padding: EdgeInsets.all(18.r),
                   decoration: BoxDecoration(
                     color: const Color(0xFF24356F),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(16.r),
                     border: Border.all(color: resultColor),
                   ),
                   child: Column(
@@ -429,21 +461,21 @@ final bool isFailedResult =
                     children: [
                       Row(
                         children: [
-                          Icon(resultIcon, color: resultColor, size: 28),
-                          const SizedBox(width: 10),
+                          Icon(resultIcon, color: resultColor, size: 28.r),
+                          SizedBox(width: 10.w),
                           Expanded(
                             child: Text(
                               result,
                               style: TextStyle(
                                 color: resultColor,
-                                fontSize: 22,
+                                fontSize: 22.sp,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 14),
+                      SizedBox(height: 14.h),
                       _resultLine(
                         label: _text('status', lang),
                         value: isMixedResult
@@ -456,44 +488,45 @@ final bool isFailedResult =
                                         ? _text('authentic', lang)
                                         : _text('unableToJudge', lang),
                       ),
-                      const SizedBox(height: 10),
+                      SizedBox(height: 10.h),
                       _resultLine(
                         label: _text('confidence', lang),
                         value: confidence,
                       ),
                       if (isMixedResult) ...[
-                        const SizedBox(height: 10),
+                        SizedBox(height: 10.h),
                         _resultLine(
                           label: _text('aiPercent', lang),
                           value: "${mixedAiPercent.toStringAsFixed(2)}%",
                         ),
-                        const SizedBox(height: 10),
+                        SizedBox(height: 10.h),
                         _resultLine(
                           label: _text('realPercent', lang),
                           value: "${mixedRealPercent.toStringAsFixed(2)}%",
                         ),
                       ],
-                      const SizedBox(height: 10),
-                      _resultLine(
-                        label: _text('explanation', lang),
-                        value: reason,
-                        multiLine: true,
-                      ),
+                      SizedBox(height: 10.h),
+                      if (reason.isNotEmpty)
+                        _resultLine(
+                          label: _text('explanation', lang),
+                          value: reason,
+                          multiLine: true,
+                        ),
                       if (isSaved) ...[
-                        const SizedBox(height: 12),
+                        SizedBox(height: 12.h),
                         Row(
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.history,
-                              size: 18,
+                              size: 18.r,
                               color: Colors.white70,
                             ),
-                            const SizedBox(width: 8),
+                            SizedBox(width: 8.w),
                             Text(
                               _text('savedToHistory', lang),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: Colors.white70,
-                                fontSize: 14,
+                                fontSize: 14.sp,
                               ),
                             ),
                           ],
@@ -503,21 +536,17 @@ final bool isFailedResult =
                   ),
                 ),
               if (extraResult.isNotEmpty && !isExtraLoading) ...[
-                const SizedBox(height: 18),
+                SizedBox(height: 18.h),
                 Text(
                   _text('extraHiveResult', lang),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: AppTextStyles.h1.copyWith(fontSize: 16.sp),
                 ),
-                const SizedBox(height: 10),
+                SizedBox(height: 10.h),
                 Container(
-                  padding: const EdgeInsets.all(18),
+                  padding: EdgeInsets.all(18.r),
                   decoration: BoxDecoration(
                     color: const Color(0xFF24356F),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(16.r),
                     border: Border.all(color: extraColor),
                   ),
                   child: Column(
@@ -525,26 +554,26 @@ final bool isFailedResult =
                     children: [
                       Row(
                         children: [
-                          Icon(extraIcon, color: extraColor, size: 26),
-                          const SizedBox(width: 10),
+                          Icon(extraIcon, color: extraColor, size: 26.r),
+                          SizedBox(width: 10.w),
                           Expanded(
                             child: Text(
                               extraResult,
                               style: TextStyle(
                                 color: extraColor,
-                                fontSize: 20,
+                                fontSize: 20.sp,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 12),
+                      SizedBox(height: 12.h),
                       _resultLine(
                         label: _text('confidence', lang),
                         value: extraConfidence,
                       ),
-                      const SizedBox(height: 10),
+                      SizedBox(height: 10.h),
                       _resultLine(
                         label: _text('explanation', lang),
                         value: extraReason,
@@ -556,6 +585,7 @@ final bool isFailedResult =
               ],
             ],
           ),
+        ),
         ),
       ),
     );
@@ -572,18 +602,18 @@ final bool isFailedResult =
       children: [
         Text(
           "$label: ",
-          style: const TextStyle(
+          style: TextStyle(
             color: Colors.white,
-            fontSize: 16,
+            fontSize: 16.sp,
             fontWeight: FontWeight.w600,
           ),
         ),
         Expanded(
           child: Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               color: Colors.white70,
-              fontSize: 15,
+              fontSize: 15.sp,
               height: 1.4,
             ),
           ),
