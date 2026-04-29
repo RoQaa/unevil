@@ -1,18 +1,19 @@
 from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
-from vosk import Model, KaldiRecognizer
 from pydub import AudioSegment
 from pydantic import BaseModel
 from pydub.utils import which
 import requests
 import re
 import numpy as np
-import wave
 import json
 import tempfile
 import os
 import cv2
 from dotenv import load_dotenv
+from transformers import AutoFeatureExtractor, AutoModelForAudioClassification
+import torch
+import librosa
 
 load_dotenv()
 
@@ -29,23 +30,8 @@ app.add_middleware(
 SIGHTENGINE_API_USER = "1130323748"
 SIGHTENGINE_API_SECRET = "KgLiiWfEgeBrKKb7xTGB7otycRBy2aVV"
 
-# إذا Aurigin ما ضبط، بنرجع تلقائيًا لـ Hive
-AURIGIN_API_KEY = "k3gnh3oVpw6Cylq4N6EMi9hB3J4ZXPqjaEZjEFR0"
-HIVE_API_KEY = "rA32plxTBppeSChHLViatw=="
-HUGGINGFACE_API_KEY = os.getenv("HUGGINGFACE_API_KEY", "")
-
-
 class TextRequest(BaseModel):
     text: str
-
-
-# class ImageRequest(BaseModel):
-#     image_base64: str
-
-
-# class AudioRequest(BaseModel):
-#     audio_base64: str
-#     file_name: str
 
 
 @app.get("/")
@@ -314,37 +300,17 @@ async def analyze_video(file: UploadFile = File(...)):
 
 
 
-# تحميل موديل Vosk
+# تحميل موديل HF Deepfake
 try:
-    vosk_model = Model("vosk-model-small-en-us-0.15")
+    HF_MODEL_NAME = "garystafford/wav2vec2-deepfake-voice-detector"
+    print("Loading HF Deepfake model...")
+    hf_feature_extractor = AutoFeatureExtractor.from_pretrained(HF_MODEL_NAME)
+    hf_model = AutoModelForAudioClassification.from_pretrained(HF_MODEL_NAME)
+    print("HF Deepfake model loaded successfully.")
 except Exception as e:
-    print(f"Warning: Failed to load Vosk model: {e}")
-    vosk_model = None
-
-
-
-# ================= SPEECH TO TEXT =================
-def speech_to_text(wav_path):
-    if vosk_model is None:
-        return ""
-        
-    wf = wave.open(wav_path, "rb")
-    rec = KaldiRecognizer(vosk_model, wf.getframerate())
-
-    text = ""
-
-    while True:
-        data = wf.readframes(4000)
-        if len(data) == 0:
-            break
-        if rec.AcceptWaveform(data):
-            res = json.loads(rec.Result())
-            text += " " + res.get("text", "")
-
-    final_res = json.loads(rec.FinalResult())
-    text += " " + final_res.get("text", "")
-
-    return text.strip()
+    print(f"Warning: Failed to load HF Deepfake model: {e}")
+    hf_feature_extractor = None
+    hf_model = None
 
 
 # ================= API =================
@@ -352,77 +318,85 @@ def speech_to_text(wav_path):
 async def analyze_audio(file: UploadFile = File(...)):
     temp_path = None
     try:
+        # ===== File Validation =====
+        if not file.filename:
+            raise HTTPException(status_code=400, detail="No file provided.")
+            
+        ext = os.path.splitext(file.filename)[1].lower()
+        if ext not in ['.wav', '.mp3', '.m4a', '.ogg', '.flac']:
+            raise HTTPException(status_code=400, detail=f"Unsupported file format: {ext}. Please upload wav, mp3, m4a, ogg, or flac.")
+
+        file_bytes = await file.read()
+        MAX_FILE_SIZE = 5 * 1024 * 1024 # 5 MB
+        if len(file_bytes) > MAX_FILE_SIZE:
+            raise HTTPException(status_code=400, detail="File too large. Maximum allowed size is 5MB to ensure fast processing.")
+
+        if len(file_bytes) == 0:
+            raise HTTPException(status_code=400, detail="Empty file uploaded.")
+
         # ===== حفظ الملف =====
-        with tempfile.NamedTemporaryFile(delete=False) as temp:
-            temp.write(await file.read())
+        with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as temp:
+            temp.write(file_bytes)
             temp_path = temp.name
             
         # ===== تأكد وجود البرنامج =====
         if which("ffmpeg") is None:
-            raise Exception("FFmpeg not found, please install it")
+            raise HTTPException(status_code=500, detail="FFmpeg not found, please install it")
             
-        # ===== تحويل لـ WAV =====
-        audio = AudioSegment.from_file(temp_path)
+        # ===== تحويل لـ WAV وقص المقطع =====
+        try:
+            audio = AudioSegment.from_file(temp_path)
+        except Exception as e:
+            raise HTTPException(status_code=400, detail="Failed to decode audio file. It might be corrupted or in an unsupported format.")
+            
+        MAX_DURATION_MS = 30 * 1000 # 30 seconds
+        note_duration = ""
+        if len(audio) > MAX_DURATION_MS:
+            audio = audio[:MAX_DURATION_MS]
+            note_duration = " (Audio was truncated to 30 seconds for faster processing)"
+
         wav_path = temp_path + ".wav"
         audio.export(wav_path, format="wav")
 
-        # ===== Speech to Text =====
-        transcript = speech_to_text(wav_path)
-
-        # ===== AI Detection =====
+        # ===== AI Detection (Local Model) =====
         is_ai = False
         confidence = "0%"
-        note = "No speech detected"
+        note = "Audio analysis failed"
         
-        if transcript:
-            # Fallback values using text
-            text_analysis = perform_text_analysis(transcript)
-            confidence_score = text_analysis.get("score", 0)
-            is_ai = confidence_score >= 65
-            confidence = f"{confidence_score}%"
-            note = "Used text analysis on transcript (HuggingFace skipped or failed)"
+        if hf_model is not None and hf_feature_extractor is not None:
+            try:
+                audio_data, sr = librosa.load(wav_path, sr=16000)
+                inputs = hf_feature_extractor(
+                    audio_data,
+                    sampling_rate=16000,
+                    return_tensors="pt",
+                    padding=True
+                )
 
-            # Try Hugging Face API if Token is provided
-            if HUGGINGFACE_API_KEY:
-                try:
-                    with open(wav_path, "rb") as f:
-                        data = f.read()
+                with torch.no_grad():
+                    logits = hf_model(**inputs).logits
+
+                predicted_class_id = torch.argmax(logits, dim=-1).item()
+                confidence_val = torch.softmax(logits, dim=-1)[0][predicted_class_id].item()
+
+                label = hf_model.config.id2label[predicted_class_id].lower()
+                
+                if "fake" in label or "spoof" in label or "ai" in label or "generated" in label:
+                    is_ai = True
+                else:
+                    is_ai = False
                     
-                    headers = {"Authorization": f"Bearer {HUGGINGFACE_API_KEY}"}
-                    # Using a known Deepfake Audio model
-                    hf_response = requests.post(
-                        "https://api-inference.huggingface.co/models/MelodyMachine/Deepfake-Audio-Detection-V2",
-                        headers=headers,
-                        data=data,
-                        timeout=30
-                    )
-                    
-                    if hf_response.status_code == 200:
-                        predictions = hf_response.json()
-                        if isinstance(predictions, list) and len(predictions) > 0:
-                            if isinstance(predictions[0], list):
-                                predictions = predictions[0]
-                                
-                            fake_score = 0.0
-                            for p in predictions:
-                                label = str(p.get("label", "")).lower()
-                                # Many models use 'fake', 'spoof', or 'ai' as the label for generated audio
-                                if "fake" in label or "spoof" in label or "ai" in label or "generated" in label:
-                                    fake_score = max(fake_score, float(p.get("score", 0.0)))
-                            
-                            # If no specific 'fake' label is found but it has LABEL_1 or similar, we might need adjustments
-                            # but this covers standard deepfake models.
-                            is_ai = fake_score > 0.5
-                            confidence = f"{fake_score * 100:.2f}%"
-                            note = "Used Hugging Face ML Audio Model (Acoustic Analysis)"
-                    else:
-                        print(f"HF Error: {hf_response.status_code} - {hf_response.text}")
-                except Exception as hf_e:
-                    print(f"Hugging Face API Error: {hf_e}")
+                confidence = f"{confidence_val * 100:.2f}%"
+                note = f"Used local ML Audio Model (wav2vec2-deepfake){note_duration}"
+            except Exception as hf_e:
+                print(f"Local HF Model Error: {hf_e}")
+                note = f"Local ML model failed{note_duration}"
+        else:
+            note = f"Local ML model not available{note_duration}"
 
         # ===== Response =====
         return {
-            "transcript": transcript if transcript else "No speech detected",
+            "transcript": "Speech transcription disabled",
             "audio_analysis": {
                 "is_ai": is_ai,
                 "confidence": confidence,
@@ -430,6 +404,8 @@ async def analyze_audio(file: UploadFile = File(...)):
             }
         }
 
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
