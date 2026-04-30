@@ -380,6 +380,16 @@ class _AudioAnalysisPageState extends State<AudioAnalysisPage> {
                         value: confidence,
                       ),
                       SizedBox(height: 10.h),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(10.r),
+                        child: LinearProgressIndicator(
+                          value: (double.tryParse(confidence.replaceAll('%', '')) ?? 0) / 100,
+                          minHeight: 10.h,
+                          backgroundColor: Colors.white10,
+                          color: resultColor,
+                        ),
+                      ),
+                      SizedBox(height: 10.h),
                       if (isSaved) ...[
                         SizedBox(height: 12.h),
                         Row(

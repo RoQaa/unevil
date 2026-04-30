@@ -46,4 +46,16 @@ class HistoryService {
     }
     await batch.commit();
   }
+
+  static Future<void> deleteHistoryItem(String docId) async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    await _firestore
+        .collection('users')
+        .doc(user.uid)
+        .collection('history')
+        .doc(docId)
+        .delete();
+  }
 }

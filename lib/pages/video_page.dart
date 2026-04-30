@@ -387,6 +387,16 @@ class _VideoAnalysisPageState
                         value: confidence,
                       ),
                       SizedBox(height: 10.h),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(10.r),
+                        child: LinearProgressIndicator(
+                          value: (double.tryParse(confidence.replaceAll('%', '')) ?? 0) / 100,
+                          minHeight: 10.h,
+                          backgroundColor: Colors.white10,
+                          color: isAiResult ? Colors.redAccent : Colors.greenAccent,
+                        ),
+                      ),
+                      SizedBox(height: 10.h),
                       if (isSaved) ...[
                         SizedBox(height: 12.h),
                         Row(

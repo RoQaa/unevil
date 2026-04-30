@@ -357,6 +357,16 @@ class _ImageAnalysisPageState extends State<ImageAnalysisPage> {
                           label: _text('confidence', lang),
                           value: confidence,
                         ),
+                        SizedBox(height: 10.h),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(10.r),
+                          child: LinearProgressIndicator(
+                            value: (double.tryParse(confidence.replaceAll('%', '')) ?? 0) / 100,
+                            minHeight: 10.h,
+                            backgroundColor: Colors.white10,
+                            color: isAiResult ? Colors.redAccent : Colors.greenAccent,
+                          ),
+                        ),
                         const SizedBox(height: 10),
                       ],
                       if (isSaved) ...[
