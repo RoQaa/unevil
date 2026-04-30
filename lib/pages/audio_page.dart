@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../config.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
 import 'history_service.dart';
@@ -23,13 +24,9 @@ class _AudioAnalysisPageState extends State<AudioAnalysisPage> {
   String result = "";
   String confidence = "";
   String reason = "";
-
-  String extraResult = "";
-  String extraConfidence = "";
-  String extraReason = "";
+  bool isAiAnalyzed = false;
 
   bool isLoading = false;
-  bool isExtraLoading = false;
   bool isSaved = false;
 
   Future<void> chooseAudio() async {
@@ -47,10 +44,7 @@ class _AudioAnalysisPageState extends State<AudioAnalysisPage> {
         result = "";
         confidence = "";
         reason = "";
-
-        extraResult = "";
-        extraConfidence = "";
-        extraReason = "";
+        isAiAnalyzed = false;
 
         isSaved = false;
       });
@@ -87,17 +81,13 @@ class _AudioAnalysisPageState extends State<AudioAnalysisPage> {
       confidence = "";
       reason = "";
 
-      extraResult = "";
-      extraConfidence = "";
-      extraReason = "";
-
       isSaved = false;
     });
 
     try {
       var request = http.MultipartRequest(
         'POST',
-        Uri.parse('http://127.0.0.1:8000/analyze-audio'),
+        Uri.parse('$backendBaseUrl/analyze-audio'),
       );
 
       request.files.add(
@@ -112,11 +102,18 @@ class _AudioAnalysisPageState extends State<AudioAnalysisPage> {
       final response = await http.Response.fromStream(streamedResponse);
 
       final data = jsonDecode(response.body);
+      final analysis = data['audio_analysis'];
 
       setState(() {
-        result = data['result'] ?? _text('analysisFailed', lang);
-        confidence = data['confidence'] ?? "";
-        reason = data['reason'] ?? "";
+        if (analysis != null) {
+          isAiAnalyzed = analysis['is_ai'] ?? false;
+          result = isAiAnalyzed ? _text('likelyAI', lang) : _text('likelyReal', lang);
+          confidence = analysis['confidence'] ?? "";
+          reason = analysis['note'] ?? "";
+        } else {
+          result = _text('analysisFailed', lang);
+          isAiAnalyzed = false;
+        }
         isLoading = false;
       });
 
@@ -156,70 +153,16 @@ class _AudioAnalysisPageState extends State<AudioAnalysisPage> {
     }
   }
 
-  Future<void> analyzeAudioWithHive() async {
-    final lang = Localizations.localeOf(context).languageCode;
-
-    if (audioBytes == null || fileName.isEmpty) {
-      setState(() {
-        extraResult = _text('chooseFirst', lang);
-        extraConfidence = "";
-        extraReason = "";
-      });
-      return;
-    }
-
-    setState(() {
-      isExtraLoading = true;
-      extraResult = "";
-      extraConfidence = "";
-      extraReason = "";
-    });
-
-    try {
-      final response = await http.post(
-        Uri.parse('http://127.0.0.1:8000/analyze-audio-hive'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'audio_base64': base64Encode(audioBytes!),
-          'file_name': fileName,
-        }),
-      );
-
-      final data = jsonDecode(response.body);
-
-      setState(() {
-        extraResult = data['result'] ?? _text('analysisFailed', lang);
-        extraConfidence = data['confidence'] ?? "";
-        extraReason = data['reason'] ?? "";
-        isExtraLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        extraResult = _text('connectionFailed', lang);
-        extraConfidence = "";
-        extraReason = _text('backendNote', lang);
-        isExtraLoading = false;
-      });
-    }
-  }
-
   void clearAudio() {
     final lang = Localizations.localeOf(context).languageCode;
 
     setState(() {
-      fileName = "";
-      audioBytes = null;
-
       result = "";
       confidence = "";
       reason = "";
-
-      extraResult = "";
-      extraConfidence = "";
-      extraReason = "";
+      isAiAnalyzed = false;
 
       isLoading = false;
-      isExtraLoading = false;
       isSaved = false;
     });
 
@@ -231,6 +174,10 @@ class _AudioAnalysisPageState extends State<AudioAnalysisPage> {
     );
   }
 
+  // Remove the explanation line from the UI in build method
+  // I will target the lines 379-384 in audio_page.dart
+
+
   double _parsePercent(String value) {
     final cleaned = value.replaceAll('%', '').trim();
     return double.tryParse(cleaned) ?? 0.0;
@@ -241,62 +188,27 @@ class _AudioAnalysisPageState extends State<AudioAnalysisPage> {
     final lang = Localizations.localeOf(context).languageCode;
     final bool isArabic = lang == 'ar';
 
-final normalizedResult = result.toLowerCase();
+    final bool isAiResult = isAiAnalyzed;
 
-final bool isAiResult =
-    normalizedResult.contains('ai') &&
-    !normalizedResult.contains('real') &&
-    !normalizedResult.contains('mixed');
-
-final bool isRealResult =
-    normalizedResult.contains('real') ||
-    normalizedResult.contains('human') ||
-    normalizedResult.contains('authentic');
-
-final bool isMixedResult =
-    normalizedResult.contains('mixed') ||
-    normalizedResult.contains('partially');
-
-final bool isFailedResult =
-    normalizedResult.contains('failed') ||
-    normalizedResult.contains('error') ||
-    result == _text('connectionFailed', lang);
+    final bool isRealResult = result.isNotEmpty && !isAiAnalyzed && !result.contains('failed');
+    
+    // Check if result string itself indicates failure
+    final bool isFailedResult =
+        result == _text('analysisFailed', lang) ||
+        result == _text('connectionFailed', lang);
     final double confidenceValue = _parsePercent(confidence);
     final double mixedAiPercent = confidenceValue.clamp(0, 100);
     final double mixedRealPercent = (100 - mixedAiPercent).clamp(0, 100);
 
     final Color resultColor = isFailedResult
         ? Colors.orangeAccent
-        : isMixedResult
-            ? Colors.yellowAccent
-            : isAiResult
-                ? Colors.redAccent
-                : Colors.greenAccent;
+        : isAiResult
+            ? Colors.redAccent
+            : Colors.greenAccent;
 
     final IconData resultIcon = isFailedResult
         ? Icons.error_outline_rounded
-        : isMixedResult
-            ? Icons.help_outline_rounded
-            : isAiResult
-                ? Icons.warning_amber_rounded
-                : Icons.verified_rounded;
-
-    final bool isExtraAi = extraResult == _text('likelyAI', lang);
-    final bool isExtraReal = extraResult == _text('likelyReal', lang);
-    final bool isExtraFailed = extraResult == _text('analysisFailed', lang) ||
-        extraResult == _text('connectionFailed', lang);
-
-    final Color extraColor = isExtraFailed
-        ? Colors.orangeAccent
-        : isExtraAi
-            ? Colors.redAccent
-            : isExtraReal
-                ? Colors.greenAccent
-                : Colors.orangeAccent;
-
-    final IconData extraIcon = isExtraFailed
-        ? Icons.error_outline_rounded
-        : isExtraAi
+        : isAiResult
             ? Icons.warning_amber_rounded
             : Icons.verified_rounded;
 
@@ -395,28 +307,6 @@ final bool isFailedResult =
                   ),
                 ],
               ),
-              SizedBox(height: 12.h),
-              SizedBox(
-                height: 48.h,
-                child: OutlinedButton.icon(
-                  onPressed: isExtraLoading ? null : analyzeAudioWithHive,
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Colors.white38),
-                    foregroundColor: Colors.white,
-                  ),
-                  icon: isExtraLoading
-                      ? SizedBox(
-                          height: 18.r,
-                          width: 18.r,
-                          child: const CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : const Icon(Icons.verified_outlined),
-                  label: Text(_text('extraCheckHive', lang)),
-                ),
-              ),
               SizedBox(height: 24.h),
               if (isLoading)
                 Container(
@@ -478,40 +368,18 @@ final bool isFailedResult =
                       SizedBox(height: 14.h),
                       _resultLine(
                         label: _text('status', lang),
-                        value: isMixedResult
-                            ? _text('mixedStatus', lang)
-                            : isFailedResult
-                                ? _text('unableToJudge', lang)
-                                : isAiResult
-                                    ? _text('suspicious', lang)
-                                    : isRealResult
-                                        ? _text('authentic', lang)
-                                        : _text('unableToJudge', lang),
+                        value: isFailedResult
+                            ? _text('unableToJudge', lang)
+                            : isAiResult
+                                ? _text('suspicious', lang)
+                                : _text('authentic', lang),
                       ),
                       SizedBox(height: 10.h),
                       _resultLine(
                         label: _text('confidence', lang),
                         value: confidence,
                       ),
-                      if (isMixedResult) ...[
-                        SizedBox(height: 10.h),
-                        _resultLine(
-                          label: _text('aiPercent', lang),
-                          value: "${mixedAiPercent.toStringAsFixed(2)}%",
-                        ),
-                        SizedBox(height: 10.h),
-                        _resultLine(
-                          label: _text('realPercent', lang),
-                          value: "${mixedRealPercent.toStringAsFixed(2)}%",
-                        ),
-                      ],
                       SizedBox(height: 10.h),
-                      if (reason.isNotEmpty)
-                        _resultLine(
-                          label: _text('explanation', lang),
-                          value: reason,
-                          multiLine: true,
-                        ),
                       if (isSaved) ...[
                         SizedBox(height: 12.h),
                         Row(
@@ -535,54 +403,6 @@ final bool isFailedResult =
                     ],
                   ),
                 ),
-              if (extraResult.isNotEmpty && !isExtraLoading) ...[
-                SizedBox(height: 18.h),
-                Text(
-                  _text('extraHiveResult', lang),
-                  style: AppTextStyles.h1.copyWith(fontSize: 16.sp),
-                ),
-                SizedBox(height: 10.h),
-                Container(
-                  padding: EdgeInsets.all(18.r),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF24356F),
-                    borderRadius: BorderRadius.circular(16.r),
-                    border: Border.all(color: extraColor),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(extraIcon, color: extraColor, size: 26.r),
-                          SizedBox(width: 10.w),
-                          Expanded(
-                            child: Text(
-                              extraResult,
-                              style: TextStyle(
-                                color: extraColor,
-                                fontSize: 20.sp,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 12.h),
-                      _resultLine(
-                        label: _text('confidence', lang),
-                        value: extraConfidence,
-                      ),
-                      SizedBox(height: 10.h),
-                      _resultLine(
-                        label: _text('explanation', lang),
-                        value: extraReason,
-                        multiLine: true,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
             ],
           ),
         ),

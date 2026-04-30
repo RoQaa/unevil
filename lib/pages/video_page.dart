@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'history_service.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../config.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:typed_data';
@@ -98,7 +99,7 @@ class _VideoAnalysisPageState
     try {
       var request = http.MultipartRequest(
         'POST',
-        Uri.parse('http://127.0.0.1:8000/analyze-video'),
+        Uri.parse('$backendBaseUrl/analyze-video'),
       );
 
       if (videoBytes != null) {
@@ -386,12 +387,6 @@ class _VideoAnalysisPageState
                         value: confidence,
                       ),
                       SizedBox(height: 10.h),
-                      if (reason.isNotEmpty)
-                        _resultLine(
-                          label: _text('explanation', lang),
-                          value: reason,
-                          multiLine: true,
-                        ),
                       if (isSaved) ...[
                         SizedBox(height: 12.h),
                         Row(

@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../core/app_text_styles.dart';
 import '../core/app_styles.dart';
 import '../core/responsive_wrapper.dart';
+import 'history_service.dart';
 
 class HistoryPage extends StatelessWidget {
   const HistoryPage({super.key});
@@ -65,19 +66,7 @@ class HistoryPage extends StatelessWidget {
 
                       if (confirm != true) return;
 
-                      final historyRef = FirebaseFirestore.instance
-                          .collection('users')
-                          .doc(user.uid)
-                          .collection('history');
-
-                      final snapshot = await historyRef.get();
-
-                      final batch = FirebaseFirestore.instance.batch();
-                      for (final doc in snapshot.docs) {
-                        batch.delete(doc.reference);
-                      }
-
-                      await batch.commit();
+                      await HistoryService.clearAllHistory();
 
                       if (!context.mounted) return;
 
@@ -630,14 +619,6 @@ class HistoryCard extends StatelessWidget {
                   style: TextStyle(
                     color: Colors.white54,
                     fontSize: 13.sp,
-                  ),
-                ),
-                SizedBox(height: 8.h),
-                Text(
-                  note,
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14.sp,
                   ),
                 ),
                 SizedBox(height: 8.h),

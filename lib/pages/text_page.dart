@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../config.dart';
 import 'package:http/http.dart' as http;
 import 'history_service.dart';
 import '../core/app_text_styles.dart';
@@ -50,7 +51,7 @@ class _TextAnalysisPageState extends State<TextAnalysisPage> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://127.0.0.1:8000/analyze-text'),
+        Uri.parse('$backendBaseUrl/analyze-text'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'text': text}),
       );
@@ -325,12 +326,6 @@ class _TextAnalysisPageState extends State<TextAnalysisPage> {
                         ),
                         const SizedBox(height: 10),
                       ],
-                      if (reason.isNotEmpty)
-                        _resultLine(
-                          label: _text('explanation', lang),
-                          value: reason,
-                          multiLine: true,
-                        ),
                       if (isSaved) ...[
                         SizedBox(height: 12.h),
                         Row(

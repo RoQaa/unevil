@@ -2,12 +2,13 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:image_picker/image_picker.dart';
+import '../config.dart';
 import 'package:http/http.dart' as http;
 import 'history_service.dart';
 import '../core/app_text_styles.dart';
 import '../core/app_styles.dart';
 import '../core/responsive_wrapper.dart';
+import 'package:image_picker/image_picker.dart';
 
 class ImageAnalysisPage extends StatefulWidget {
   const ImageAnalysisPage({super.key});
@@ -75,7 +76,7 @@ class _ImageAnalysisPageState extends State<ImageAnalysisPage> {
     try {
       var request = http.MultipartRequest(
         'POST',
-        Uri.parse('http://127.0.0.1:8000/analyze-image'),
+        Uri.parse('$backendBaseUrl/analyze-image'),
       );
 
       request.files.add(
@@ -358,12 +359,6 @@ class _ImageAnalysisPageState extends State<ImageAnalysisPage> {
                         ),
                         const SizedBox(height: 10),
                       ],
-                      if (reason.isNotEmpty)
-                        _resultLine(
-                          label: _text('explanation', lang),
-                          value: reason,
-                          multiLine: true,
-                        ),
                       if (isSaved) ...[
                         SizedBox(height: 12.h),
                         Row(

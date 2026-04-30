@@ -29,4 +29,21 @@ class HistoryService {
       'userId': user.uid,
     });
   }
+
+  static Future<void> clearAllHistory() async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    final snapshot = await _firestore
+        .collection('users')
+        .doc(user.uid)
+        .collection('history')
+        .get();
+
+    final batch = _firestore.batch();
+    for (final doc in snapshot.docs) {
+      batch.delete(doc.reference);
+    }
+    await batch.commit();
+  }
 }
