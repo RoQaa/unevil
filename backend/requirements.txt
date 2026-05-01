@@ -8,3 +8,7 @@ numpy
 opencv-python-headless
 python-multipart
 python-dotenv
+transformers
+librosa
+torch
+tempfile

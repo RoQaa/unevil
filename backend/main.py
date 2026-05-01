@@ -341,7 +341,7 @@ async def analyze_audio(file: UploadFile = File(...)):
         file_bytes = await file.read()
         MAX_FILE_SIZE = 10 * 1024 * 1024 # 10 MB
         if len(file_bytes) > MAX_FILE_SIZE:
-            raise HTTPException(status_code=400, detail="File too large. Maximum allowed size is 5MB to ensure fast processing.")
+            raise HTTPException(status_code=400, detail="File too large. Maximum allowed size is 10MB to ensure fast processing.")
 
         if len(file_bytes) == 0:
             raise HTTPException(status_code=400, detail="Empty file uploaded.")
