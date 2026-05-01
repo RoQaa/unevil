@@ -98,18 +98,15 @@ class _SignUpPageState extends State<SignUpPage> {
           'createdAt': FieldValue.serverTimestamp(),
         });
 
-        // 3. Sign out to force login
-        await FirebaseAuth.instance.signOut();
       }
 
       if (mounted) {
         setState(() => isLoading = false);
-        showMessage("Account created! Please login.");
+        showMessage("Account created successfully!");
         
-        // Use PushAndRemoveUntil to ensure we go back to a clean Login screen
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (context) => LoginPage()),
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
           (route) => false,
         );
       }
@@ -134,7 +131,7 @@ class _SignUpPageState extends State<SignUpPage> {
   void showMessage(String text) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(text),
+        content: Text(text, style: const TextStyle(color: Colors.white)),
         backgroundColor: const Color(0xFF24356F),
       ),
     );

@@ -72,6 +72,9 @@ class _UnveilAppState extends State<UnveilApp> {
               seedColor: const Color(0xFFF5A623),
               brightness: Brightness.dark,
             ),
+            snackBarTheme: const SnackBarThemeData(
+              contentTextStyle: TextStyle(color: Colors.white),
+            ),
           ),
           home: const AuthGate(),
         );

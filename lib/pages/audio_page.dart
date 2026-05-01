@@ -40,7 +40,7 @@ class _AudioAnalysisPageState extends State<AudioAnalysisPage> {
   Future<void> chooseAudio() async {
     FilePickerResult? picked = await FilePicker.platform.pickFiles(
       type: FileType.custom,
-      allowedExtensions: ['mp3', 'wav', 'm4a'],
+      allowedExtensions: ['mp3', 'wav', 'm4a', 'aac', 'ogg'],
       withData: true,
     );
 

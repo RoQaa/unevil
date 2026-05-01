@@ -84,13 +84,13 @@ class _StartPageState extends State<StartPage> with TickerProviderStateMixin {
 
   /// دالة لفتح الرابط الخارجي (مثل فتح موقع جوجل كروم) في المتصفح الخارجي الخاص بالنظام.
   Future<void> _launchUrl() async {
-    const url = 'https://www.google.com/chrome/';
+    const url = 'https://www.google.com/chrome/';//////////////////////////////////////////////////////////////////////////////////////////
     final uri = Uri.parse(url);
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Could not launch $url'),
+            content: Text('Could not launch $url', style: const TextStyle(color: Colors.white)),
             backgroundColor: const Color(0xFF24356F),
           ),
         );
