@@ -6,6 +6,7 @@ import '../main.dart';
 import 'login_page.dart';
 import '../core/app_text_styles.dart';
 import '../core/responsive_wrapper.dart';
+import 'app_translations.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -23,7 +24,7 @@ class ProfilePage extends StatelessWidget {
         backgroundColor: const Color(0xFF18245C),
         foregroundColor: Colors.white,
         elevation: 0,
-        title: Text(_text('profile', lang)),
+        title: Text(AppTranslations.text('profile_profile', lang)),
       ),
       body: Directionality(
         textDirection: isArabic
@@ -32,7 +33,7 @@ class ProfilePage extends StatelessWidget {
         child: user == null
             ? Center(
                 child: Text(
-                  _text('noUser', lang),
+                  AppTranslations.text('profile_noUser', lang),
                   style: AppTextStyles.bodyMedium,
                 ),
               )
@@ -45,7 +46,7 @@ class ProfilePage extends StatelessWidget {
                   if (profileSnapshot.hasError) {
                     return Center(
                       child: Text(
-                        _text('errorLoading', lang),
+                        AppTranslations.text('profile_errorLoading', lang),
                         style: AppTextStyles.bodySmall,
                       ),
                     );
@@ -110,9 +111,7 @@ class ProfilePage extends StatelessWidget {
                             _infoCard(
                               icon: Icons
                                   .badge_outlined,
-                              label: _text(
-                                  'fullName',
-                                  lang),
+                              label: AppTranslations.text('profile_fullName', lang),
                               value:
                                   fullName,
                             ),
@@ -124,9 +123,7 @@ class ProfilePage extends StatelessWidget {
                             _infoCard(
                               icon: Icons
                                   .email_outlined,
-                              label: _text(
-                                  'email',
-                                  lang),
+                              label: AppTranslations.text('profile_email', lang),
                               value:
                                   user.email ??
                                       '--',
@@ -139,9 +136,7 @@ class ProfilePage extends StatelessWidget {
                             _infoCard(
                               icon: Icons
                                   .person_outline,
-                              label: _text(
-                                  'gender',
-                                  lang),
+                              label: AppTranslations.text('profile_gender', lang),
                               value:
                                   _translatedGender(
                                       gender,
@@ -155,9 +150,7 @@ class ProfilePage extends StatelessWidget {
                             _infoCard(
                               icon: Icons
                                   .cake_outlined,
-                              label: _text(
-                                  'age',
-                                  lang),
+                              label: AppTranslations.text('profile_age', lang),
                               value:
                                   age,
                             ),
@@ -187,7 +180,7 @@ class ProfilePage extends StatelessWidget {
                                       ),
                                       SizedBox(height: 10.h),
                                       Text(
-                                        _text('statistics', lang),
+                                        AppTranslations.text('profile_statistics', lang),
                                         style: AppTextStyles.h3,
                                       ),
                                     ],
@@ -198,9 +191,7 @@ class ProfilePage extends StatelessWidget {
                                           16.h),
 
                                   _statRow(
-                                    _text(
-                                        'analysisCount',
-                                        lang),
+                                    AppTranslations.text('profile_analysisCount', lang),
                                     docs.length
                                         .toString(),
                                   ),
@@ -210,9 +201,7 @@ class ProfilePage extends StatelessWidget {
                                           10.h),
 
                                   _statRow(
-                                    _text(
-                                        'text',
-                                        lang),
+                                    AppTranslations.text('profile_text', lang),
                                     textCount
                                         .toString(),
                                   ),
@@ -222,9 +211,7 @@ class ProfilePage extends StatelessWidget {
                                           10.h),
 
                                   _statRow(
-                                    _text(
-                                        'image',
-                                        lang),
+                                    AppTranslations.text('profile_image', lang),
                                     imageCount
                                         .toString(),
                                   ),
@@ -234,9 +221,7 @@ class ProfilePage extends StatelessWidget {
                                           10.h),
 
                                   _statRow(
-                                    _text(
-                                        'audio',
-                                        lang),
+                                    AppTranslations.text('profile_audio', lang),
                                     audioCount
                                         .toString(),
                                   ),
@@ -246,9 +231,7 @@ class ProfilePage extends StatelessWidget {
                                           10.h),
 
                                   _statRow(
-                                    _text(
-                                        'video',
-                                        lang),
+                                    AppTranslations.text('profile_video', lang),
                                     videoCount
                                         .toString(),
                                   ),
@@ -398,9 +381,7 @@ class ProfilePage extends StatelessWidget {
 
           Expanded(
             child: Text(
-              _text(
-                  'language',
-                  lang),
+              AppTranslations.text('profile_language', lang),
                       style: AppTextStyles.h2.copyWith(fontSize: 18.sp),
             ),
           ),
@@ -507,9 +488,7 @@ class ProfilePage extends StatelessWidget {
 
             Expanded(
               child: Text(
-                _text(
-                    'logout',
-                    lang),
+                AppTranslations.text('profile_logout', lang),
                 style: AppTypography.bodySmall,
               ),
             ),
@@ -559,92 +538,4 @@ class ProfilePage extends StatelessWidget {
         gender;
   }
 
-  String _text(
-    String key,
-    String lang,
-  ) {
-    final data = {
-      'profile': {
-        'en':
-            'Profile & Settings',
-        'ar':
-            'الملف الشخصي والإعدادات',
-      },
-      'noUser': {
-        'en':
-            'No user logged in',
-        'ar':
-            'لا يوجد مستخدم',
-      },
-      'fullName': {
-        'en': 'Full Name',
-        'ar': 'الاسم',
-      },
-      'email': {
-        'en': 'Email',
-        'ar':
-            'البريد الإلكتروني',
-      },
-      'gender': {
-        'en': 'Gender',
-        'ar': 'الجنس',
-      },
-      'age': {
-        'en': 'Age',
-        'ar': 'العمر',
-      },
-      'statistics': {
-        'en': 'Statistics',
-        'ar':
-            'الإحصائيات',
-      },
-      'analysisCount': {
-        'en':
-            'Total Analyses',
-        'ar':
-            'إجمالي التحليلات',
-      },
-      'language': {
-        'en': 'Language',
-        'ar': 'اللغة',
-      },
-      'logout': {
-        'en': 'Log Out',
-        'ar':
-            'تسجيل الخروج',
-      },
-      'text': {
-        'en':
-            'Text Analyses',
-        'ar':
-            'تحليلات النص',
-      },
-      'image': {
-        'en':
-            'Image Analyses',
-        'ar':
-            'تحليلات الصور',
-      },
-      'audio': {
-        'en':
-            'Audio Analyses',
-        'ar':
-            'تحليلات الصوت',
-      },
-      'video': {
-        'en':
-            'Video Analyses',
-        'ar':
-            'تحليلات الفيديو',
-      },
-      'errorLoading': {
-        'en': 'Error loading profile',
-        'ar': 'خطأ في تحميل البيانات',
-      },
-    };
-
-    return data[key]?[lang] ??
-        data[key]?['en'] ??
-        key;
-  }
 }

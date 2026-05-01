@@ -14,6 +14,11 @@ import 'package:flutter/foundation.dart'
 ///   options: DefaultFirebaseOptions.currentPlatform,
 /// );
 /// ```
+/// ملف الإعدادات الخاص بـ Firebase.
+/// يتم توليد هذا الملف تلقائياً بواسطة أداة FlutterFire CLI.
+/// وظيفته هي تخزين مفاتيح الربط (API Keys) ومعرفات المشروع (App IDs)
+/// لربط التطبيق بقاعدة بيانات وخدمات فايربيس (Firebase) لمختلف المنصات 
+/// (أندرويد، iOS، ويب، وويندوز).
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {

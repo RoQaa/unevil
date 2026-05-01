@@ -8,6 +8,7 @@ import 'history_service.dart';
 import '../core/app_text_styles.dart';
 import '../core/app_styles.dart';
 import '../core/responsive_wrapper.dart';
+import 'app_translations.dart';
 import 'package:image_picker/image_picker.dart';
 
 /// صفحة تحليل الصور (Analysis Page).
@@ -63,7 +64,7 @@ class _ImageAnalysisPageState extends State<ImageAnalysisPage> {
 
     if (selectedImage == null || imageBytes == null) {
       setState(() {
-        result = _text('chooseFirst', lang);
+        result = AppTranslations.text('image_chooseFirst', lang);
         confidence = "";
         reason = "";
         isSaved = false;
@@ -116,7 +117,7 @@ class _ImageAnalysisPageState extends State<ImageAnalysisPage> {
         if (hasValidAnalysis) {
           await HistoryService.saveHistory(
             type: 'image',
-            titleKey: _text('title', lang),
+            titleKey: AppTranslations.text('image_title', lang),
             resultKey: apiResult,
             confidence: apiConfidence,
             noteKey: apiReason,
@@ -130,16 +131,16 @@ class _ImageAnalysisPageState extends State<ImageAnalysisPage> {
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(_text('savedToHistory', lang)),
+              content: Text(AppTranslations.text('image_savedToHistory', lang)),
               backgroundColor: const Color(0xFF24356F),
             ),
           );
         }
       } else {
         setState(() {
-          result = _text('serverError', lang);
+          result = AppTranslations.text('image_serverError', lang);
           confidence = "";
-          reason = _text('tryAgain', lang);
+          reason = AppTranslations.text('image_tryAgain', lang);
           isLoading = false;
           isSaved = false;
           hasValidAnalysis = false;
@@ -147,9 +148,9 @@ class _ImageAnalysisPageState extends State<ImageAnalysisPage> {
       }
     } catch (e) {
       setState(() {
-        result = _text('connectionFailed', lang);
+        result = AppTranslations.text('image_connectionFailed', lang);
         confidence = "";
-        reason = _text('backendNote', lang);
+        reason = AppTranslations.text('image_backendNote', lang);
         isLoading = false;
         isSaved = false;
         hasValidAnalysis = false;
@@ -174,7 +175,7 @@ class _ImageAnalysisPageState extends State<ImageAnalysisPage> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(_text('cleared', lang)),
+        content: Text(AppTranslations.text('image_cleared', lang)),
         backgroundColor: const Color(0xFF24356F),
       ),
     );
@@ -187,9 +188,9 @@ class _ImageAnalysisPageState extends State<ImageAnalysisPage> {
 
     final bool isAiResult = result == 'Likely AI Generated';
     final bool isErrorResult =
-        result == _text('connectionFailed', lang) ||
-        result == _text('serverError', lang) ||
-        result == _text('chooseFirst', lang) ||
+        result == AppTranslations.text('image_connectionFailed', lang) ||
+        result == AppTranslations.text('image_serverError', lang) ||
+        result == AppTranslations.text('image_chooseFirst', lang) ||
         result == 'Analysis failed';
 
     return Scaffold(
@@ -197,7 +198,7 @@ class _ImageAnalysisPageState extends State<ImageAnalysisPage> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF18245C),
         foregroundColor: Colors.white,
-        title: Text(_text('title', lang)),
+        title: Text(AppTranslations.text('image_title', lang)),
       ),
       body: Directionality(
         textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
@@ -207,7 +208,7 @@ class _ImageAnalysisPageState extends State<ImageAnalysisPage> {
             child: ListView(
               children: [
               Text(
-                _text('upload', lang),
+                AppTranslations.text('image_upload', lang),
                 style: AppTextStyles.h1.copyWith(fontSize: 16.sp),
               ),
               SizedBox(height: 20.h),
@@ -220,7 +221,7 @@ class _ImageAnalysisPageState extends State<ImageAnalysisPage> {
                     foregroundColor: Colors.white,
                   ),
                   icon: const Icon(Icons.upload),
-                  label: Text(_text('choose', lang)),
+                  label: Text(AppTranslations.text('image_choose', lang)),
                 ),
               ),
               SizedBox(height: 20.h),
@@ -262,7 +263,7 @@ class _ImageAnalysisPageState extends State<ImageAnalysisPage> {
                                   strokeWidth: 2.5,
                                 ),
                               )
-                            : Text(_text('analyze', lang)),
+                            : Text(AppTranslations.text('image_analyze', lang)),
                       ),
                     ),
                   ),
@@ -278,7 +279,7 @@ class _ImageAnalysisPageState extends State<ImageAnalysisPage> {
                           borderRadius: BorderRadius.circular(AppStyles.borderRadius),
                         ),
                       ),
-                      child: Text(_text('clear', lang)),
+                      child: Text(AppTranslations.text('image_clear', lang)),
                     ),
                   ),
                 ],
@@ -304,7 +305,7 @@ class _ImageAnalysisPageState extends State<ImageAnalysisPage> {
                       SizedBox(width: 14.w),
                       Expanded(
                         child: Text(
-                          _text('analyzingNow', lang),
+                          AppTranslations.text('image_analyzingNow', lang),
                           style: AppTextStyles.button,
                         ),
                       ),
@@ -356,14 +357,14 @@ class _ImageAnalysisPageState extends State<ImageAnalysisPage> {
                       SizedBox(height: 14.h),
                       if (hasValidAnalysis) ...[
                         _resultLine(
-                          label: _text('status', lang),
+                          label: AppTranslations.text('image_status', lang),
                           value: isAiResult
-                              ? _text('suspicious', lang)
-                              : _text('authentic', lang),
+                              ? AppTranslations.text('image_suspicious', lang)
+                              : AppTranslations.text('image_authentic', lang),
                         ),
                         SizedBox(height: 10.h),
                         _resultLine(
-                          label: _text('confidence', lang),
+                          label: AppTranslations.text('image_confidence', lang),
                           value: confidence,
                         ),
                         SizedBox(height: 10.h),
@@ -389,7 +390,7 @@ class _ImageAnalysisPageState extends State<ImageAnalysisPage> {
                             ),
                             SizedBox(width: 8.w),
                             Text(
-                              _text('savedToHistory', lang),
+                              AppTranslations.text('image_savedToHistory', lang),
                               style: TextStyle(
                                 color: Colors.white70,
                                 fontSize: 14.sp,
@@ -440,82 +441,4 @@ class _ImageAnalysisPageState extends State<ImageAnalysisPage> {
     );
   }
 
-  String _text(String key, String lang) {
-    final data = {
-      'title': {
-        'en': 'Image Analysis',
-        'ar': 'تحليل الصور',
-      },
-      'upload': {
-        'en': 'Upload image to analyze:',
-        'ar': 'ارفع صورة للتحليل:',
-      },
-      'choose': {
-        'en': 'Choose Image',
-        'ar': 'اختر صورة',
-      },
-      'analyze': {
-        'en': 'Analyze',
-        'ar': 'تحليل',
-      },
-      'clear': {
-        'en': 'Clear',
-        'ar': 'مسح',
-      },
-      'chooseFirst': {
-        'en': 'Choose image first',
-        'ar': 'اختر صورة أولاً',
-      },
-      'analyzingNow': {
-        'en': 'Analyzing image, please wait...',
-        'ar': 'جاري تحليل الصورة، انتظر قليلًا...',
-      },
-      'confidence': {
-        'en': 'Confidence',
-        'ar': 'الثقة',
-      },
-      'status': {
-        'en': 'Status',
-        'ar': 'الحالة',
-      },
-      'authentic': {
-        'en': 'Authentic',
-        'ar': 'أصيل',
-      },
-      'suspicious': {
-        'en': 'Suspicious',
-        'ar': 'مشبوه',
-      },
-      'explanation': {
-        'en': 'Explanation',
-        'ar': 'التفسير',
-      },
-      'savedToHistory': {
-        'en': 'Saved to history successfully',
-        'ar': 'تم حفظ النتيجة في السجل',
-      },
-      'cleared': {
-        'en': 'Image cleared',
-        'ar': 'تم مسح الصورة',
-      },
-      'connectionFailed': {
-        'en': 'Connection failed',
-        'ar': 'فشل الاتصال',
-      },
-      'backendNote': {
-        'en': 'Make sure the backend server is running.',
-        'ar': 'تأكدي أن سيرفر الخلفية شغال.',
-      },
-      'serverError': {
-        'en': 'Server error',
-        'ar': 'خطأ في السيرفر',
-      },
-      'tryAgain': {
-        'en': 'Please try again.',
-        'ar': 'حاولي مرة أخرى.',
-      },
-    };
-
-    return data[key]?[lang] ?? data[key]?['en'] ?? key;
-  }
 }

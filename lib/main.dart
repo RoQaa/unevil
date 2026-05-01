@@ -7,6 +7,8 @@ import 'firebase_options.dart';
 import 'pages/start_page.dart';
 import 'pages/home_page.dart';
 
+/// نقطة البداية لتشغيل التطبيق بالكامل (Entry Point).
+/// تقوم بتهيئة خدمات Flutter ومن ثم تهيئة خدمات Firebase قبل تشغيل التطبيق.
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
@@ -15,6 +17,8 @@ Future<void> main() async {
   runApp(const UnveilApp());
 }
 
+/// الويدجت الرئيسي للتطبيق (Root Widget).
+/// يتحكم في إعدادات التطبيق العامة مثل الثيم (Theme) واللغات المدعومة والتجاوب (Responsive ScreenUtil).
 class UnveilApp extends StatefulWidget {
   const UnveilApp({super.key});
 
@@ -28,12 +32,15 @@ class UnveilApp extends StatefulWidget {
 class _UnveilAppState extends State<UnveilApp> {
   Locale _locale = const Locale('en');
 
+  /// دالة لتغيير لغة التطبيق وتحديث واجهة المستخدم (UI) لتعكس اللغة الجديدة.
   void changeLanguage(String languageCode) {
     setState(() {
       _locale = Locale(languageCode);
     });
   }
 
+  /// دالة البناء الرئيسية، هنا نستخدم ScreenUtil لجعل التطبيق متجاوباً (Responsive) مع مختلف أحجام الشاشات.
+  /// ونمرر اللغات المدعومة والـ Theme (الألوان) الخاصة بالتطبيق لـ MaterialApp.
   @override
   Widget build(BuildContext context) {
     return ScreenUtilInit(
@@ -73,6 +80,10 @@ class _UnveilAppState extends State<UnveilApp> {
   }
 }
 
+/// بوابة المصادقة (AuthGate).
+/// تقوم بمراقبة حالة المستخدم (هل قام بتسجيل الدخول أم لا) عبر StreamBuilder.
+/// إذا كان المستخدم مسجلاً، يتم توجيهه مباشرة إلى الصفحة الرئيسية (HomeScreen).
+/// إذا لم يكن مسجلاً، يتم توجيهه إلى صفحة البداية (StartPage).
 class AuthGate extends StatelessWidget {
   const AuthGate({super.key});
 
