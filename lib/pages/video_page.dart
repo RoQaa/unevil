@@ -12,6 +12,8 @@ import '../core/app_text_styles.dart';
 import '../core/app_styles.dart';
 import '../core/responsive_wrapper.dart';
 
+/// صفحة تحليل الفيديو (Analysis Page).
+/// تسمح للمستخدم برفع أو إدخال المحتوى للتحقق مما إذا كان حقيقياً أم مولداً بالذكاء الاصطناعي.
 class VideoAnalysisPage extends StatefulWidget {
   const VideoAnalysisPage({super.key});
 
@@ -63,6 +65,10 @@ class _VideoAnalysisPageState
     }
   }
 
+  /// الدالة الأساسية لتحليل المحتوى.
+  /// 1. ترسل المحتوى إلى خادم الخلفية (Backend) عبر طلب HTTP POST.
+  /// 2. تستقبل النتيجة وتترجمها.
+  /// 3. تحفظ النتيجة في السجل (History) عبر Firebase للرجوع إليها لاحقاً.
   Future<void> analyzeVideo() async {
     final lang =
         Localizations.localeOf(context).languageCode;
@@ -172,6 +178,7 @@ class _VideoAnalysisPageState
     );
   }
 
+  /// دالة لمسح المحتوى الحالي من الشاشة والذاكرة للبدء من جديد.
   void clearVideo() {
     final lang =
         Localizations.localeOf(context).languageCode;

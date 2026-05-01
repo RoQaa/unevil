@@ -9,9 +9,13 @@ import '../core/app_text_styles.dart';
 import '../core/app_styles.dart';
 import '../core/responsive_wrapper.dart';
 
+/// صفحة تسجيل الدخول الرئيسية. هذه الصفحة تحتوي على تصميم الـ Scaffold الخارجي (الخلفية الزرقاء)
+/// وتستدعي الكارد الداخلي الخاص باللوجين.
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
 
+  /// دالة الـ build المسؤولة عن رسم وتصميم كارد تسجيل الدخول.
+  /// تحتوي على الشعار، نصوص الترحيب، حقول الإدخال، وزر تسجيل الدخول.
   @override
   Widget build(BuildContext context) {
     final String lang = Localizations.localeOf(context).languageCode;
@@ -34,6 +38,7 @@ class LoginPage extends StatelessWidget {
   }
 }
 
+/// واجهة الكارد الداخلي لتسجيل الدخول، تحتوي على حالة (State) لتتبع التحميل والمدخلات.
 class _LoginCard extends StatefulWidget {
   const _LoginCard();
 
@@ -47,6 +52,10 @@ class _LoginCardState extends State<_LoginCard> {
 
   bool isLoading = false;
 
+  /// دالة تسجيل الدخول (Login).
+  /// تقوم بالتحقق من المدخلات (الإيميل وكلمة المرور) أولاً.
+  /// ثم تتواصل مع Firebase للتحقق من صحة البيانات.
+  /// إذا نجحت العملية، يتم نقل المستخدم لصفحة التطبيق الرئيسية (HomeScreen).
   Future<void> login() async {
     final String email = emailController.text.trim();
     final String password = passwordController.text.trim();
@@ -106,6 +115,8 @@ class _LoginCardState extends State<_LoginCard> {
     }
   }
 
+  /// دالة إعادة تعيين كلمة المرور.
+  /// ترسل رابط على البريد الإلكتروني المدخل لتمكين المستخدم من تغيير كلمة المرور عبر Firebase.
   Future<void> resetPassword() async {
     final String email = emailController.text.trim();
 
@@ -132,6 +143,7 @@ class _LoginCardState extends State<_LoginCard> {
     }
   }
 
+  /// دالة مساعدة (Helper function) لطباعة رسالة منبثقة (SnackBar) للمستخدم في أسفل الشاشة.
   void _showMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -141,6 +153,8 @@ class _LoginCardState extends State<_LoginCard> {
     );
   }
 
+  /// دالة الـ build المسؤولة عن رسم وتصميم كارد تسجيل الدخول.
+  /// تحتوي على الشعار، نصوص الترحيب، حقول الإدخال، وزر تسجيل الدخول.
   @override
   Widget build(BuildContext context) {
     final String lang = Localizations.localeOf(context).languageCode;
@@ -161,21 +175,11 @@ class _LoginCardState extends State<_LoginCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Image.asset(
-                'assets/logo.png',
-                height: 40,
-              ),
-              IconButton(
-                icon: const Icon(Icons.language, color: Colors.white, size: 24),
-                onPressed: () {
-                  final String current = Localizations.localeOf(context).languageCode;
-                  UnveilApp.of(context).changeLanguage(current == 'en' ? 'ar' : 'en');
-                },
-              ),
-            ],
+          Center(
+            child: Image.asset(
+              'assets/logo.png',
+              height: 40,
+            ),
           ),
           const SizedBox(height: 20),
           Text(
@@ -253,6 +257,7 @@ class _LoginCardState extends State<_LoginCard> {
     );
   }
 
+  /// دالة مساعدة لرسم حقول الإدخال (TextFields) بشكل موحد ومتناسق (لتقليل تكرار الكود).
   Widget _buildInput({
     required TextEditingController controller,
     required String hint,

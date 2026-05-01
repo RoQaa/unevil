@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../main.dart';
+import 'app_translations.dart';
 import 'login_page.dart';
 import '../core/app_text_styles.dart';
 import '../core/app_styles.dart';
 import '../core/responsive_wrapper.dart';
 
+/// صفحة البداية الخاصة بالتطبيق، تعرض اللوجو الخاص بـ Unveil AI وزرين للبدء والانتقال للموقع.
 class StartPage extends StatefulWidget {
   const StartPage({super.key});
 
@@ -13,6 +16,7 @@ class StartPage extends StatefulWidget {
   State<StartPage> createState() => _StartPageState();
 }
 
+/// الحالة (State) الخاصة بصفحة البداية، وتحتوي على المتحكمات (Controllers) المسؤولة عن الأنيميشن (الحركة).
 class _StartPageState extends State<StartPage> with TickerProviderStateMixin {
   late AnimationController logoController;
   late AnimationController textController;
@@ -22,6 +26,7 @@ class _StartPageState extends State<StartPage> with TickerProviderStateMixin {
   late Animation<double> textAnimation;
   late Animation<Offset> buttonAnimation;
 
+  /// يتم استدعاء هذه الدالة عند بداية تحميل الصفحة، وهنا نقوم بتجهيز الأنيميشن (الحركات) للوجو والنصوص والأزرار وتشغيلها بالتتابع.
   @override
   void initState() {
     super.initState();
@@ -68,6 +73,7 @@ class _StartPageState extends State<StartPage> with TickerProviderStateMixin {
     });
   }
 
+  /// تنظيف وإيقاف الأنيميشن من الذاكرة عند الخروج من الصفحة لمنع تسريب الذاكرة (Memory Leak).
   @override
   void dispose() {
     logoController.dispose();
@@ -76,8 +82,9 @@ class _StartPageState extends State<StartPage> with TickerProviderStateMixin {
     super.dispose();
   }
 
+  /// دالة لفتح الرابط الخارجي (مثل فتح موقع جوجل كروم) في المتصفح الخارجي الخاص بالنظام.
   Future<void> _launchUrl() async {
-    const url = 'https://unveil.ai';
+    const url = 'https://www.google.com/chrome/';
     final uri = Uri.parse(url);
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       if (mounted) {
@@ -91,8 +98,13 @@ class _StartPageState extends State<StartPage> with TickerProviderStateMixin {
     }
   }
 
+  /// دالة الـ build تقوم ببناء واجهة الصفحة. نستخدم Directionality لدعم اللغتين العربية والإنجليزية (RTL و LTR).
+  /// وتحتوي على زر تغيير اللغة (PopupMenuButton) والنصوص والأزرار التي تتحرك للداخل.
   @override
   Widget build(BuildContext context) {
+    final String lang = Localizations.localeOf(context).languageCode;
+    final bool isArabic = lang == 'ar';
+
     return Scaffold(
       body: Container(
         width: double.infinity,
@@ -108,11 +120,57 @@ class _StartPageState extends State<StartPage> with TickerProviderStateMixin {
           ),
         ),
         child: SafeArea(
-          child: SingleChildScrollView(
-            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 30.h),
-            child: ResponsiveWrapper(
-              child: Column(
-                children: [
+          child: Directionality(
+            textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
+            child: Column(
+              children: [
+                Align(
+                  alignment: AlignmentDirectional.centerEnd,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
+                    child: PopupMenuButton<String>(
+                      icon: const Icon(Icons.language, color: Colors.white, size: 24),
+                      color: Colors.white,
+                      surfaceTintColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      onSelected: (String value) {
+                        UnveilApp.of(context).changeLanguage(value);
+                      },
+                      itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                        PopupMenuItem<String>(
+                          value: 'en',
+                          child: Text('English', style: AppTypography.bodySmall.copyWith(color: Colors.black)),
+                        ),
+                        PopupMenuItem<String>(
+                          value: 'ar',
+                          child: Text('العربية', style: AppTypography.bodySmall.copyWith(color: Colors.black)),
+                        ),
+                        PopupMenuItem<String>(
+                          value: 'es',
+                          child: Text('Español', style: AppTypography.bodySmall.copyWith(color: Colors.black)),
+                        ),
+                        PopupMenuItem<String>(
+                          value: 'fr',
+                          child: Text('Français', style: AppTypography.bodySmall.copyWith(color: Colors.black)),
+                        ),
+                        PopupMenuItem<String>(
+                          value: 'zh',
+                          child: Text('中文', style: AppTypography.bodySmall.copyWith(color: Colors.black)),
+                        ),
+                        PopupMenuItem<String>(
+                          value: 'hi',
+                          child: Text('हिन्दी', style: AppTypography.bodySmall.copyWith(color: Colors.black)),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.symmetric(horizontal: 24, vertical: 10.h),
+                    child: ResponsiveWrapper(
+                      child: Column(
+                        children: [
                   SizedBox(height: 50.h),
                   ScaleTransition(
                     scale: logoAnimation,
@@ -145,7 +203,7 @@ class _StartPageState extends State<StartPage> with TickerProviderStateMixin {
                         ),
                         SizedBox(height: 15.h),
                         Text(
-                          "Reveal fake content instantly.\nAnalyze text, images, audio and video with confidence.",
+                          AppTranslations.text('appDescription', lang),
                           textAlign: TextAlign.center,
                           style: AppTypography.bodySmall.copyWith(
                             height: 1.6,
@@ -180,7 +238,7 @@ class _StartPageState extends State<StartPage> with TickerProviderStateMixin {
                               ),
                             ),
                             child: Text(
-                              "Get Started",
+                              AppTranslations.text('getStarted', lang),
                               style: AppTypography.button,
                             ),
                           ),
@@ -199,7 +257,7 @@ class _StartPageState extends State<StartPage> with TickerProviderStateMixin {
                               ),
                             ),
                             child: Text(
-                              "Visit Unveil Web",
+                              AppTranslations.text('visitWeb', lang),
                               style: AppTypography.button,
                             ),
                           ),
@@ -214,6 +272,10 @@ class _StartPageState extends State<StartPage> with TickerProviderStateMixin {
                   ),
                 ],
               ),
+            ),
+          ),
+        ),
+              ],
             ),
           ),
         ),

@@ -10,6 +10,8 @@ import '../core/app_styles.dart';
 import '../core/responsive_wrapper.dart';
 import 'package:image_picker/image_picker.dart';
 
+/// صفحة تحليل الصور (Analysis Page).
+/// تسمح للمستخدم برفع أو إدخال المحتوى للتحقق مما إذا كان حقيقياً أم مولداً بالذكاء الاصطناعي.
 class ImageAnalysisPage extends StatefulWidget {
   const ImageAnalysisPage({super.key});
 
@@ -17,6 +19,8 @@ class ImageAnalysisPage extends StatefulWidget {
   State<ImageAnalysisPage> createState() => _ImageAnalysisPageState();
 }
 
+/// الحالة الخاصة بصفحة تحليل الصور.
+/// تحتفظ بالبيانات الهامة، نتيجة التحليل، وحالة التحميل.
 class _ImageAnalysisPageState extends State<ImageAnalysisPage> {
   XFile? selectedImage;
   Uint8List? imageBytes;
@@ -50,6 +54,10 @@ class _ImageAnalysisPageState extends State<ImageAnalysisPage> {
     }
   }
 
+  /// الدالة الأساسية لتحليل المحتوى.
+  /// 1. ترسل المحتوى إلى خادم الخلفية (Backend) عبر طلب HTTP POST.
+  /// 2. تستقبل النتيجة وتترجمها.
+  /// 3. تحفظ النتيجة في السجل (History) عبر Firebase للرجوع إليها لاحقاً.
   Future<void> analyzeImage() async {
     final lang = Localizations.localeOf(context).languageCode;
 
@@ -149,6 +157,7 @@ class _ImageAnalysisPageState extends State<ImageAnalysisPage> {
     }
   }
 
+  /// دالة لمسح المحتوى الحالي من الشاشة والذاكرة للبدء من جديد.
   void clearImage() {
     final lang = Localizations.localeOf(context).languageCode;
 

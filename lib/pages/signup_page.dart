@@ -9,6 +9,8 @@ import '../core/app_text_styles.dart';
 import '../core/app_styles.dart';
 import '../core/responsive_wrapper.dart';
 
+/// صفحة إنشاء حساب جديد (Sign Up).
+/// تحتوي على فورم لجمع بيانات المستخدم وإدخالها لقاعدة بيانات Firebase.
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
 
@@ -16,6 +18,8 @@ class SignUpPage extends StatefulWidget {
   State<SignUpPage> createState() => _SignUpPageState();
 }
 
+/// حالة (State) صفحة إنشاء الحساب.
+/// تحتوي على متحكمات (Controllers) لحقول الإدخال مثل الاسم، الإيميل، والعمر، بالإضافة لمتغيرات تتبع الجنس وحالة التحميل.
 class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
@@ -28,6 +32,11 @@ class _SignUpPageState extends State<SignUpPage> {
   bool isChecked = false;
   bool isLoading = false;
 
+  /// دالة معالجة عملية تسجيل حساب جديد.
+  /// 1. تتحقق من أن جميع الحقول ممتلئة وصحيحة (Validation).
+  /// 2. تنشئ مستخدم جديد في Firebase Authentication.
+  /// 3. تحفظ بيانات المستخدم (الاسم، العمر، الجنس) في Firebase Firestore.
+  /// 4. تسجل الخروج للرجوع لصفحة اللوجين لكي يسجل الدخول بنفسه.
   Future<void> handleSignUp() async {
     final String name = nameController.text.trim();
     final String email = emailController.text.trim();
@@ -121,6 +130,7 @@ class _SignUpPageState extends State<SignUpPage> {
     }
   }
 
+  /// دالة مساعدة لطباعة رسالة تنبيه سفلية (SnackBar) للمستخدم في حال وجود خطأ أو نجاح العملية.
   void showMessage(String text) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -130,6 +140,7 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 
+  /// دالة لترجمة نوع الجنس المختار وعرضه باللغة الصحيحة للمستخدم.
   String translatedGenderValue(String value, String lang) {
     switch (value) {
       case "Male": return AppTranslations.text('male', lang);
@@ -140,6 +151,7 @@ class _SignUpPageState extends State<SignUpPage> {
     }
   }
 
+  /// دالة مساعدة لبناء حقول الإدخال (TextFields) لتقليل التكرار وتوحيد الشكل.
   Widget buildField({
     required TextEditingController controller,
     required IconData icon,
@@ -176,6 +188,7 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 
+  /// دالة لفتح قائمة منسدلة (PopupMenu) لاختيار الجنس (ذكر، أنثى، وغيرها).
   Future<void> openGenderMenu() async {
     final String lang = Localizations.localeOf(context).languageCode;
     final bool isArabic = lang == 'ar';
@@ -241,6 +254,7 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 
+  /// دالة الـ build لرسم وتصميم واجهة صفحة التسجيل، تحتوي على حقول الإدخال، مربع الموافقة على الشروط، وزر إنشاء الحساب.
   @override
   Widget build(BuildContext context) {
     final String lang = Localizations.localeOf(context).languageCode;

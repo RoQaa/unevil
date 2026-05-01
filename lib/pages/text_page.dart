@@ -8,6 +8,8 @@ import '../core/app_text_styles.dart';
 import '../core/app_styles.dart';
 import '../core/responsive_wrapper.dart';
 
+/// صفحة تحليل النصوص (Analysis Page).
+/// تسمح للمستخدم برفع أو إدخال المحتوى للتحقق مما إذا كان حقيقياً أم مولداً بالذكاء الاصطناعي.
 class TextAnalysisPage extends StatefulWidget {
   const TextAnalysisPage({super.key});
 
@@ -15,6 +17,8 @@ class TextAnalysisPage extends StatefulWidget {
   State<TextAnalysisPage> createState() => _TextAnalysisPageState();
 }
 
+/// الحالة الخاصة بصفحة تحليل النصوص.
+/// تحتفظ بالبيانات الهامة، نتيجة التحليل، وحالة التحميل.
 class _TextAnalysisPageState extends State<TextAnalysisPage> {
   final TextEditingController controller = TextEditingController();
 
@@ -25,6 +29,10 @@ class _TextAnalysisPageState extends State<TextAnalysisPage> {
   bool isSaved = false;
   bool hasValidAnalysis = false;
 
+  /// الدالة الأساسية لتحليل المحتوى.
+  /// 1. ترسل المحتوى إلى خادم الخلفية (Backend) عبر طلب HTTP POST.
+  /// 2. تستقبل النتيجة وتترجمها.
+  /// 3. تحفظ النتيجة في السجل (History) عبر Firebase للرجوع إليها لاحقاً.
   Future<void> analyzeText() async {
     final lang = Localizations.localeOf(context).languageCode;
     final text = controller.text.trim();
@@ -113,6 +121,7 @@ class _TextAnalysisPageState extends State<TextAnalysisPage> {
     }
   }
 
+  /// دالة لمسح المحتوى الحالي من الشاشة والذاكرة للبدء من جديد.
   void clearText() {
     final lang = Localizations.localeOf(context).languageCode;
 
