@@ -6,10 +6,13 @@ import '../config.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
 import 'history_service.dart';
+import 'app_translations.dart';
 import '../core/app_text_styles.dart';
 import '../core/app_styles.dart';
 import '../core/responsive_wrapper.dart';
 
+/// صفحة تحليل الصوت (Audio Analysis).
+/// تسمح للمستخدم برفع مقطع صوتي وتحديد ما إذا كان حقيقياً أم مولداً بالذكاء الاصطناعي.
 class AudioAnalysisPage extends StatefulWidget {
   const AudioAnalysisPage({super.key});
 
@@ -17,6 +20,8 @@ class AudioAnalysisPage extends StatefulWidget {
   State<AudioAnalysisPage> createState() => _AudioAnalysisPageState();
 }
 
+/// الحالة الخاصة بصفحة تحليل الصوت.
+/// تحتفظ بالبيانات الهامة مثل اسم الملف، بايتات الصوت، نتيجة التحليل، وحالة التحميل.
 class _AudioAnalysisPageState extends State<AudioAnalysisPage> {
   String fileName = "";
   Uint8List? audioBytes;
@@ -29,6 +34,9 @@ class _AudioAnalysisPageState extends State<AudioAnalysisPage> {
   bool isLoading = false;
   bool isSaved = false;
 
+  /// دالة اختيار ملف صوتي من جهاز المستخدم.
+  /// تستخدم حزمة FilePicker وتسمح بملفات (mp3, wav, m4a).
+  /// وتقوم بتخزين محتوى الملف في الذاكرة تمهيداً لرفعه.
   Future<void> chooseAudio() async {
     FilePickerResult? picked = await FilePicker.platform.pickFiles(
       type: FileType.custom,
@@ -51,12 +59,17 @@ class _AudioAnalysisPageState extends State<AudioAnalysisPage> {
     }
   }
 
+  /// الدالة الأساسية لتحليل الصوت.
+  /// 1. تتأكد من اختيار ملف وصيغته صحيحة.
+  /// 2. ترسل الملف إلى خادم الخلفية (Backend) عبر طلب HTTP POST.
+  /// 3. تستقبل النتيجة وتترجمها (هل هو ذكاء اصطناعي أم حقيقي).
+  /// 4. تقوم بحفظ النتيجة في السجل (History) عبر Firebase للرجوع إليها لاحقاً.
   Future<void> analyzeAudio() async {
     final lang = Localizations.localeOf(context).languageCode;
 
     if (audioBytes == null || fileName.isEmpty) {
       setState(() {
-        result = _text('chooseFirst', lang);
+        result = AppTranslations.text('chooseFirst', lang);
         confidence = "";
         reason = "";
         isSaved = false;
@@ -107,24 +120,24 @@ class _AudioAnalysisPageState extends State<AudioAnalysisPage> {
       setState(() {
         if (analysis != null) {
           isAiAnalyzed = analysis['is_ai'] ?? false;
-          result = isAiAnalyzed ? _text('likelyAI', lang) : _text('likelyReal', lang);
+          result = isAiAnalyzed ? AppTranslations.text('likelyAI', lang) : AppTranslations.text('likelyReal', lang);
           confidence = analysis['confidence'] ?? "";
           reason = analysis['note'] ?? "";
         } else {
-          result = _text('analysisFailed', lang);
+          result = AppTranslations.text('analysisFailed', lang);
           isAiAnalyzed = false;
         }
         isLoading = false;
       });
 
-      if (result == _text('analysisFailed', lang) ||
+      if (result == AppTranslations.text('analysisFailed', lang) ||
           result == 'Analysis failed') {
         return;
       }
 
       await HistoryService.saveHistory(
         type: 'audio',
-        titleKey: _text('title', lang),
+        titleKey: AppTranslations.text('audioTitle', lang),
         resultKey: result,
         confidence: confidence,
         noteKey: reason,
@@ -138,21 +151,23 @@ class _AudioAnalysisPageState extends State<AudioAnalysisPage> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(_text('savedToHistory', lang)),
+          content: Text(AppTranslations.text('savedToHistory', lang)),
           backgroundColor: const Color(0xFF24356F),
         ),
       );
     } catch (e) {
       setState(() {
-        result = _text('connectionFailed', lang);
+        result = AppTranslations.text('connectionFailed', lang);
         confidence = "";
-        reason = _text('backendNote', lang);
+        reason = AppTranslations.text('backendNote', lang);
         isLoading = false;
         isSaved = false;
       });
     }
   }
 
+  /// دالة لمسح الملف الحالي من الشاشة والذاكرة.
+  /// تعيد تهيئة المتغيرات للبدء من جديد.
   void clearAudio() {
     final lang = Localizations.localeOf(context).languageCode;
 
@@ -168,7 +183,7 @@ class _AudioAnalysisPageState extends State<AudioAnalysisPage> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(_text('cleared', lang)),
+        content: Text(AppTranslations.text('cleared', lang)),
         backgroundColor: const Color(0xFF24356F),
       ),
     );
@@ -178,11 +193,15 @@ class _AudioAnalysisPageState extends State<AudioAnalysisPage> {
   // I will target the lines 379-384 in audio_page.dart
 
 
+  /// دالة مساعدة لتحويل نسبة الثقة (مثلاً "95%") إلى رقم عشري (0.95)
+  /// لكي يستطيع شريط التقدم (LinearProgressIndicator) قراءته ورسمه.
   double _parsePercent(String value) {
     final cleaned = value.replaceAll('%', '').trim();
     return double.tryParse(cleaned) ?? 0.0;
   }
 
+  /// دالة الـ build لرسم وتصميم واجهة المستخدم الخاصة بالصفحة.
+  /// تقوم برسم الأزرار، مؤشر التحميل الدائري، وإطار عرض النتيجة بألوان تتغير حسب حالة التحليل (أخضر أو أحمر).
   @override
   Widget build(BuildContext context) {
     final lang = Localizations.localeOf(context).languageCode;
@@ -194,8 +213,8 @@ class _AudioAnalysisPageState extends State<AudioAnalysisPage> {
     
     // Check if result string itself indicates failure
     final bool isFailedResult =
-        result == _text('analysisFailed', lang) ||
-        result == _text('connectionFailed', lang);
+        result == AppTranslations.text('analysisFailed', lang) ||
+        result == AppTranslations.text('connectionFailed', lang);
     final double confidenceValue = _parsePercent(confidence);
     final double mixedAiPercent = confidenceValue.clamp(0, 100);
     final double mixedRealPercent = (100 - mixedAiPercent).clamp(0, 100);
@@ -217,7 +236,7 @@ class _AudioAnalysisPageState extends State<AudioAnalysisPage> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF18245C),
         foregroundColor: Colors.white,
-        title: Text(_text('title', lang)),
+        title: Text(AppTranslations.text('audioTitle', lang)),
       ),
       body: Directionality(
         textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
@@ -227,7 +246,7 @@ class _AudioAnalysisPageState extends State<AudioAnalysisPage> {
             child: ListView(
               children: [
               Text(
-                _text('upload', lang),
+                AppTranslations.text('audioUpload', lang),
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 18.sp,
@@ -246,7 +265,7 @@ class _AudioAnalysisPageState extends State<AudioAnalysisPage> {
                     ),
                   ),
                   icon: const Icon(Icons.audio_file),
-                  label: Text(_text('choose', lang)),
+                  label: Text(AppTranslations.text('audioChoose', lang)),
                 ),
               ),
               SizedBox(height: 20.h),
@@ -286,7 +305,7 @@ class _AudioAnalysisPageState extends State<AudioAnalysisPage> {
                                   strokeWidth: 2.5,
                                 ),
                               )
-                            : Text(_text('analyze', lang)),
+                            : Text(AppTranslations.text('audioAnalyze', lang)),
                       ),
                     ),
                   ),
@@ -302,7 +321,7 @@ class _AudioAnalysisPageState extends State<AudioAnalysisPage> {
                           borderRadius: BorderRadius.circular(AppStyles.borderRadius),
                         ),
                       ),
-                      child: Text(_text('clear', lang)),
+                      child: Text(AppTranslations.text('audioClear', lang)),
                     ),
                   ),
                 ],
@@ -328,7 +347,7 @@ class _AudioAnalysisPageState extends State<AudioAnalysisPage> {
                       SizedBox(width: 14.w),
                       Expanded(
                         child: Text(
-                          _text('analyzingNow', lang),
+                          AppTranslations.text('analyzingNow', lang),
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 16.sp,
@@ -367,16 +386,16 @@ class _AudioAnalysisPageState extends State<AudioAnalysisPage> {
                       ),
                       SizedBox(height: 14.h),
                       _resultLine(
-                        label: _text('status', lang),
+                        label: AppTranslations.text('status', lang),
                         value: isFailedResult
-                            ? _text('unableToJudge', lang)
+                            ? AppTranslations.text('unableToJudge', lang)
                             : isAiResult
-                                ? _text('suspicious', lang)
-                                : _text('authentic', lang),
+                                ? AppTranslations.text('suspicious', lang)
+                                : AppTranslations.text('authentic', lang),
                       ),
                       SizedBox(height: 10.h),
                       _resultLine(
-                        label: _text('confidence', lang),
+                        label: AppTranslations.text('confidence', lang),
                         value: confidence,
                       ),
                       SizedBox(height: 10.h),
@@ -401,7 +420,7 @@ class _AudioAnalysisPageState extends State<AudioAnalysisPage> {
                             ),
                             SizedBox(width: 8.w),
                             Text(
-                              _text('savedToHistory', lang),
+                              AppTranslations.text('savedToHistory', lang),
                               style: TextStyle(
                                 color: Colors.white70,
                                 fontSize: 14.sp,
@@ -421,6 +440,8 @@ class _AudioAnalysisPageState extends State<AudioAnalysisPage> {
     );
   }
 
+  /// دالة مساعدة لرسم سطر يحتوي على تسمية (Label) وقيمة (Value) بتنسيق موحد.
+  /// تُستخدم لعرض تفاصيل النتيجة مثل الثقة والتفسير.
   Widget _resultLine({
     required String label,
     required String value,
@@ -450,116 +471,5 @@ class _AudioAnalysisPageState extends State<AudioAnalysisPage> {
         ),
       ],
     );
-  }
-
-  String _text(String key, String lang) {
-    final data = {
-      'title': {
-        'en': 'Audio Analysis',
-        'ar': 'تحليل الصوت',
-      },
-      'upload': {
-        'en': 'Upload audio to analyze:',
-        'ar': 'ارفع ملف صوتي:',
-      },
-      'choose': {
-        'en': 'Choose Audio',
-        'ar': 'اختر صوت',
-      },
-      'analyze': {
-        'en': 'Analyze',
-        'ar': 'تحليل',
-      },
-      'clear': {
-        'en': 'Clear',
-        'ar': 'مسح',
-      },
-      'extraCheckHive': {
-        'en': 'Extra check with Hive',
-        'ar': 'تحقق إضافي بـ Hive',
-      },
-      'extraHiveResult': {
-        'en': 'Extra Hive result',
-        'ar': 'نتيجة Hive الإضافية',
-      },
-      'chooseFirst': {
-        'en': 'Choose audio first',
-        'ar': 'اختر صوت أولاً',
-      },
-      'analyzingNow': {
-        'en': 'Analyzing audio, please wait...',
-        'ar': 'جاري تحليل الصوت، انتظر قليلًا...',
-      },
-      'likelyAI': {
-        'en': 'Likely AI Audio',
-        'ar': 'غالبًا صوت مولد',
-      },
-      'likelyReal': {
-        'en': 'Likely Real Audio',
-        'ar': 'غالبًا صوت حقيقي',
-      },
-      'mixedDetection': {
-        'en': 'Mixed Detection',
-        'ar': 'نتيجة مختلطة',
-      },
-      'confidence': {
-        'en': 'Confidence',
-        'ar': 'الثقة',
-      },
-      'status': {
-        'en': 'Status',
-        'ar': 'الحالة',
-      },
-      'authentic': {
-        'en': 'Authentic',
-        'ar': 'أصيل',
-      },
-      'suspicious': {
-        'en': 'Suspicious',
-        'ar': 'مشبوه',
-      },
-      'mixedStatus': {
-        'en': 'Mixed signals',
-        'ar': 'إشارات مختلطة',
-      },
-      'unableToJudge': {
-        'en': 'Unable to judge',
-        'ar': 'تعذر التحديد',
-      },
-      'aiPercent': {
-        'en': 'AI',
-        'ar': 'ذكاء',
-      },
-      'realPercent': {
-        'en': 'Real',
-        'ar': 'حقيقي',
-      },
-      'explanation': {
-        'en': 'Explanation',
-        'ar': 'التفسير',
-      },
-      'savedToHistory': {
-        'en': 'Saved to history successfully',
-        'ar': 'تم حفظ النتيجة في السجل',
-      },
-      'cleared': {
-        'en': 'Audio cleared',
-        'ar': 'تم مسح الملف الصوتي',
-      },
-      'connectionFailed': {
-        'en': 'Connection failed',
-        'ar': 'فشل الاتصال',
-      },
-      'backendNote': {
-        'en': 'Make sure the backend server is running.',
-        'ar': 'تأكدي أن سيرفر الخلفية شغال.',
-      },
-      'analysisFailed': {
-        'en': 'Analysis failed',
-        'ar': 'فشل التحليل',
-      },
-    };
-
-    return data[key]?[lang] ?? data[key]?['en'] ?? key;
   }
 }

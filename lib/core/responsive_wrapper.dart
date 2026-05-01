@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
-/// Constrains content to a mobile-friendly max width on large screens.
-/// On mobile, it fills the full width. On tablet/desktop, it centers
-/// the content with a maximum width to maintain visual proportion.
+  /// دالة الـ build المسؤولة عن بناء وتخطيط الواجهة.
+  /// تقوم بالتحقق من حجم الشاشة باستخدام MediaQuery.
+  /// إذا كانت الشاشة كبيرة (Tablet/Desktop)، تقوم بتوسيط المحتوى (Center) ووضع حد أقصى للعرض (maxWidth).
+  /// إذا كانت الشاشة صغيرة (Mobile)، تسمح للمحتوى بالامتداد على كامل العرض.
+  
+
 class ResponsiveWrapper extends StatelessWidget {
   final Widget child;
   final double maxWidth;

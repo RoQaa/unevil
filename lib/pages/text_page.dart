@@ -7,7 +7,10 @@ import 'history_service.dart';
 import '../core/app_text_styles.dart';
 import '../core/app_styles.dart';
 import '../core/responsive_wrapper.dart';
+import 'app_translations.dart';
 
+/// صفحة تحليل النصوص (Analysis Page).
+/// تسمح للمستخدم برفع أو إدخال المحتوى للتحقق مما إذا كان حقيقياً أم مولداً بالذكاء الاصطناعي.
 class TextAnalysisPage extends StatefulWidget {
   const TextAnalysisPage({super.key});
 
@@ -15,6 +18,8 @@ class TextAnalysisPage extends StatefulWidget {
   State<TextAnalysisPage> createState() => _TextAnalysisPageState();
 }
 
+/// الحالة الخاصة بصفحة تحليل النصوص.
+/// تحتفظ بالبيانات الهامة، نتيجة التحليل، وحالة التحميل.
 class _TextAnalysisPageState extends State<TextAnalysisPage> {
   final TextEditingController controller = TextEditingController();
 
@@ -25,13 +30,17 @@ class _TextAnalysisPageState extends State<TextAnalysisPage> {
   bool isSaved = false;
   bool hasValidAnalysis = false;
 
+  /// الدالة الأساسية لتحليل المحتوى.
+  /// 1. ترسل المحتوى إلى خادم الخلفية (Backend) عبر طلب HTTP POST.
+  /// 2. تستقبل النتيجة وتترجمها.
+  /// 3. تحفظ النتيجة في السجل (History) عبر Firebase للرجوع إليها لاحقاً.
   Future<void> analyzeText() async {
     final lang = Localizations.localeOf(context).languageCode;
     final text = controller.text.trim();
 
     if (text.isEmpty) {
       setState(() {
-        result = _text('pleaseEnterText', lang);
+        result = AppTranslations.text('text_pleaseEnterText', lang);
         confidence = "";
         reason = "";
         isSaved = false;
@@ -73,7 +82,7 @@ class _TextAnalysisPageState extends State<TextAnalysisPage> {
 
         await HistoryService.saveHistory(
           type: 'text',
-          titleKey: _text('textAnalysis', lang),
+          titleKey: AppTranslations.text('text_textAnalysis', lang),
           resultKey: apiResult,
           confidence: apiConfidence,
           noteKey: apiReason,
@@ -87,15 +96,15 @@ class _TextAnalysisPageState extends State<TextAnalysisPage> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(_text('savedToHistory', lang)),
+            content: Text(AppTranslations.text('text_savedToHistory', lang)),
             backgroundColor: const Color(0xFF24356F),
           ),
         );
       } else {
         setState(() {
-          result = _text('serverError', lang);
+          result = AppTranslations.text('text_serverError', lang);
           confidence = "";
-          reason = _text('tryAgain', lang);
+          reason = AppTranslations.text('text_tryAgain', lang);
           isLoading = false;
           isSaved = false;
           hasValidAnalysis = false;
@@ -103,9 +112,9 @@ class _TextAnalysisPageState extends State<TextAnalysisPage> {
       }
     } catch (e) {
       setState(() {
-        result = _text('connectionFailed', lang);
+        result = AppTranslations.text('text_connectionFailed', lang);
         confidence = "";
-        reason = _text('backendNote', lang);
+        reason = AppTranslations.text('text_backendNote', lang);
         isLoading = false;
         isSaved = false;
         hasValidAnalysis = false;
@@ -113,6 +122,7 @@ class _TextAnalysisPageState extends State<TextAnalysisPage> {
     }
   }
 
+  /// دالة لمسح المحتوى الحالي من الشاشة والذاكرة للبدء من جديد.
   void clearText() {
     final lang = Localizations.localeOf(context).languageCode;
 
@@ -128,7 +138,7 @@ class _TextAnalysisPageState extends State<TextAnalysisPage> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(_text('cleared', lang)),
+        content: Text(AppTranslations.text('text_cleared', lang)),
         backgroundColor: const Color(0xFF24356F),
       ),
     );
@@ -143,16 +153,16 @@ class _TextAnalysisPageState extends State<TextAnalysisPage> {
         result == 'غالبًا مولد بالذكاء الاصطناعي';
 
     final bool isErrorResult =
-        result == _text('connectionFailed', lang) ||
-        result == _text('serverError', lang) ||
-        result == _text('pleaseEnterText', lang);
+        result == AppTranslations.text('text_connectionFailed', lang) ||
+        result == AppTranslations.text('text_serverError', lang) ||
+        result == AppTranslations.text('text_pleaseEnterText', lang);
 
     return Scaffold(
       backgroundColor: const Color(0xFF18245C),
       appBar: AppBar(
         backgroundColor: const Color(0xFF18245C),
         foregroundColor: Colors.white,
-        title: Text(_text('textAnalysis', lang)),
+        title: Text(AppTranslations.text('text_textAnalysis', lang)),
       ),
       body: Directionality(
         textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
@@ -162,7 +172,7 @@ class _TextAnalysisPageState extends State<TextAnalysisPage> {
             child: ListView(
               children: [
               Text(
-                _text('pasteText', lang),
+                AppTranslations.text('text_pasteText', lang),
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 18.sp,
@@ -182,7 +192,7 @@ class _TextAnalysisPageState extends State<TextAnalysisPage> {
                   style: const TextStyle(color: Colors.black, fontSize: 16),
                   decoration: InputDecoration(
                     border: InputBorder.none,
-                    hintText: _text('enterText', lang),
+                    hintText: AppTranslations.text('text_enterText', lang),
                     hintStyle: AppTextStyles.bodyMedium.copyWith(color: Colors.grey.shade600),
                   ),
                 ),
@@ -212,7 +222,7 @@ class _TextAnalysisPageState extends State<TextAnalysisPage> {
                                 ),
                               )
                             : Text(
-                                _text('analyze', lang),
+                                AppTranslations.text('text_analyze', lang),
                                 style: AppTextStyles.button,
                               ),
                       ),
@@ -230,7 +240,7 @@ class _TextAnalysisPageState extends State<TextAnalysisPage> {
                           borderRadius: BorderRadius.circular(AppStyles.borderRadius),
                         ),
                       ),
-                      child: Text(_text('clear', lang), style: AppTextStyles.button),
+                      child: Text(AppTranslations.text('text_clear', lang), style: AppTextStyles.button),
                     ),
                   ),
                 ],
@@ -256,7 +266,7 @@ class _TextAnalysisPageState extends State<TextAnalysisPage> {
                       SizedBox(width: 14.w),
                       Expanded(
                         child: Text(
-                          _text('analyzingNow', lang),
+                          AppTranslations.text('text_analyzingNow', lang),
                           style: AppTextStyles.bodyMedium,
                         ),
                       ),
@@ -314,14 +324,14 @@ class _TextAnalysisPageState extends State<TextAnalysisPage> {
                       SizedBox(height: 14.h),
                       if (hasValidAnalysis) ...[
                         _resultLine(
-                          label: _text('status', lang),
+                          label: AppTranslations.text('text_status', lang),
                           value: isAiResult
-                              ? _text('suspicious', lang)
-                              : _text('authentic', lang),
+                              ? AppTranslations.text('text_suspicious', lang)
+                              : AppTranslations.text('text_authentic', lang),
                         ),
                         SizedBox(height: 10.h),
                         _resultLine(
-                          label: _text('confidence', lang),
+                          label: AppTranslations.text('text_confidence', lang),
                           value: confidence,
                         ),
                         SizedBox(height: 10.h),
@@ -347,7 +357,7 @@ class _TextAnalysisPageState extends State<TextAnalysisPage> {
                             ),
                             SizedBox(width: 8.w),
                             Text(
-                              _text('savedToHistory', lang),
+                              AppTranslations.text('text_savedToHistory', lang),
                               style: AppTextStyles.bodySmall.copyWith(color: Colors.white70),
                             ),
                           ],
@@ -395,82 +405,4 @@ class _TextAnalysisPageState extends State<TextAnalysisPage> {
     );
   }
 
-  String _text(String key, String lang) {
-    final data = {
-      'textAnalysis': {
-        'en': 'Text Analysis',
-        'ar': 'تحليل النص',
-      },
-      'pasteText': {
-        'en': 'Paste or write text below:',
-        'ar': 'ألصق أو اكتب النص:',
-      },
-      'enterText': {
-        'en': 'Enter text here...',
-        'ar': 'اكتب النص هنا...',
-      },
-      'analyze': {
-        'en': 'Analyze',
-        'ar': 'تحليل',
-      },
-      'clear': {
-        'en': 'Clear',
-        'ar': 'مسح',
-      },
-      'pleaseEnterText': {
-        'en': 'Please enter text first',
-        'ar': 'أدخل نص أولاً',
-      },
-      'analyzingNow': {
-        'en': 'Analyzing text, please wait...',
-        'ar': 'جاري تحليل النص، انتظر قليلًا...',
-      },
-      'confidence': {
-        'en': 'Confidence',
-        'ar': 'الثقة',
-      },
-      'status': {
-        'en': 'Status',
-        'ar': 'الحالة',
-      },
-      'authentic': {
-        'en': 'Authentic',
-        'ar': 'أصيل',
-      },
-      'suspicious': {
-        'en': 'Suspicious',
-        'ar': 'مشبوه',
-      },
-      'explanation': {
-        'en': 'Explanation',
-        'ar': 'التفسير',
-      },
-      'savedToHistory': {
-        'en': 'Saved to history successfully',
-        'ar': 'تم حفظ النتيجة في السجل',
-      },
-      'cleared': {
-        'en': 'Text cleared',
-        'ar': 'تم مسح النص',
-      },
-      'connectionFailed': {
-        'en': 'Connection failed',
-        'ar': 'فشل الاتصال',
-      },
-      'backendNote': {
-        'en': 'Make sure the backend server is running.',
-        'ar': 'تأكدي أن سيرفر الخلفية شغال.',
-      },
-      'serverError': {
-        'en': 'Server error',
-        'ar': 'خطأ في السيرفر',
-      },
-      'tryAgain': {
-        'en': 'Please try again.',
-        'ar': 'حاولي مرة أخرى.',
-      },
-    };
-
-    return data[key]?[lang] ?? data[key]?['en'] ?? key;
-  }
 }

@@ -6,7 +6,9 @@ import '../core/app_text_styles.dart';
 import '../core/app_styles.dart';
 import '../core/responsive_wrapper.dart';
 import 'history_service.dart';
+import 'app_translations.dart';
 
+/// صفحة السجل (History Page)، تعرض تاريخ جميع التحليلات التي قام بها المستخدم.
 class HistoryPage extends StatelessWidget {
   const HistoryPage({super.key});
 
@@ -23,7 +25,7 @@ class HistoryPage extends StatelessWidget {
         appBar: AppBar(
           backgroundColor: const Color(0xFF18245C),
           foregroundColor: Colors.white,
-          title: Text(_text('title', lang)),
+          title: Text(AppTranslations.text('historyTitle', lang)),
           actions: user == null
               ? []
               : [
@@ -35,11 +37,11 @@ class HistoryPage extends StatelessWidget {
                           return AlertDialog(
                             backgroundColor: const Color(0xFF24356F),
                             title: Text(
-                              _text('deleteAllTitle', lang),
+                              AppTranslations.text('deleteAllTitle', lang),
                                 style: AppTextStyles.h3,
                             ),
                             content: Text(
-                              _text('deleteAllMessage', lang),
+                              AppTranslations.text('deleteAllMessage', lang),
                                 style: AppTextStyles.bodyMedium,
                             ),
                             actions: [
@@ -47,7 +49,7 @@ class HistoryPage extends StatelessWidget {
                                 onPressed: () =>
                                     Navigator.pop(context, false),
                                 child: Text(
-                                  _text('cancel', lang),
+                                  AppTranslations.text('cancel', lang),
                                   style: AppTextStyles.bodyMedium,
                                 ),
                               ),
@@ -55,7 +57,7 @@ class HistoryPage extends StatelessWidget {
                                 onPressed: () =>
                                     Navigator.pop(context, true),
                                 child: Text(
-                                  _text('delete', lang),
+                                  AppTranslations.text('delete', lang),
                                   style: AppTextStyles.bodyMedium.copyWith(color: Colors.redAccent),
                                 ),
                               ),
@@ -72,7 +74,7 @@ class HistoryPage extends StatelessWidget {
 
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text(_text('allDeleted', lang)),
+                          content: Text(AppTranslations.text('allDeleted', lang)),
                           backgroundColor: const Color(0xFF24356F),
                         ),
                       );
@@ -81,7 +83,7 @@ class HistoryPage extends StatelessWidget {
                       Icons.delete_sweep_outlined,
                       color: Colors.white,
                     ),
-                    tooltip: _text('deleteAll', lang),
+                    tooltip: AppTranslations.text('deleteAll', lang),
                   ),
                 ],
           bottom: TabBar(
@@ -90,11 +92,11 @@ class HistoryPage extends StatelessWidget {
             unselectedLabelColor: Colors.white70,
             indicatorColor: const Color(0xFFF5A623),
             tabs: [
-              Tab(text: _text('all', lang)),
-              Tab(text: _text('text', lang)),
-              Tab(text: _text('image', lang)),
-              Tab(text: _text('audio', lang)),
-              Tab(text: _text('video', lang)),
+              Tab(text: AppTranslations.text('all', lang)),
+              Tab(text: AppTranslations.text('text', lang)),
+              Tab(text: AppTranslations.text('image', lang)),
+              Tab(text: AppTranslations.text('audio', lang)),
+              Tab(text: AppTranslations.text('video', lang)),
             ],
           ),
         ),
@@ -104,7 +106,7 @@ class HistoryPage extends StatelessWidget {
             child: user == null
               ? Center(
                   child: Text(
-                    _text('noUser', lang),
+                    AppTranslations.text('noUser', lang),
                       style: AppTextStyles.bodyMedium,
                   ),
                 )
@@ -211,6 +213,7 @@ class HistoryPage extends StatelessWidget {
     );
   }
 
+  /// دالة مساعدة لبناء قائمة (ListView) تعرض عناصر السجل، وتدعم الفلترة (نصوص، صور، صوت، فيديو).
   Widget _buildHistoryList({
     required BuildContext context,
     required List<QueryDocumentSnapshot> docs,
@@ -228,7 +231,7 @@ class HistoryPage extends StatelessWidget {
     if (filteredDocs.isEmpty) {
       return Center(
         child: Text(
-          _text('empty', lang),
+          AppTranslations.text('empty', lang),
             style: AppTextStyles.bodyMedium,
         ),
       );
@@ -292,25 +295,25 @@ final bool isAi =
                   return AlertDialog(
                     backgroundColor: const Color(0xFF24356F),
                     title: Text(
-                      _text('deleteItemTitle', lang),
+                      AppTranslations.text('deleteItemTitle', lang),
                       style: const TextStyle(color: Colors.white),
                     ),
                     content: Text(
-                      _text('deleteItemMessage', lang),
+                      AppTranslations.text('deleteItemMessage', lang),
                       style: const TextStyle(color: Colors.white70),
                     ),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(context, false),
                         child: Text(
-                          _text('cancel', lang),
+                          AppTranslations.text('cancel', lang),
                           style: const TextStyle(color: Colors.white70),
                         ),
                       ),
                       TextButton(
                         onPressed: () => Navigator.pop(context, true),
                         child: Text(
-                          _text('delete', lang),
+                          AppTranslations.text('delete', lang),
                           style: const TextStyle(color: Colors.redAccent),
                         ),
                       ),
@@ -331,7 +334,7 @@ final bool isAi =
 
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text(_text('deleted', lang)),
+                  content: Text(AppTranslations.text('deleted', lang)),
                   backgroundColor: const Color(0xFF24356F),
                 ),
               );
@@ -376,86 +379,9 @@ final bool isAi =
     return '$day/$month/$year - $hour:$minute $period';
   }
 
-  String _text(String key, String lang) {
-    final data = {
-      'title': {
-        'en': 'History',
-        'ar': 'السجل',
-      },
-      'all': {
-        'en': 'All',
-        'ar': 'الكل',
-      },
-      'text': {
-        'en': 'Text',
-        'ar': 'النصوص',
-      },
-      'image': {
-        'en': 'Image',
-        'ar': 'الصور',
-      },
-      'audio': {
-        'en': 'Audio',
-        'ar': 'الصوت',
-      },
-      'video': {
-        'en': 'Video',
-        'ar': 'الفيديو',
-      },
-      'empty': {
-        'en': 'No history yet',
-        'ar': 'لا يوجد سجل حتى الآن',
-      },
-      'noUser': {
-        'en': 'No user logged in',
-        'ar': 'لا يوجد مستخدم',
-      },
-      'deleteAll': {
-        'en': 'Delete all',
-        'ar': 'حذف الكل',
-      },
-      'deleteAllTitle': {
-        'en': 'Delete all history?',
-        'ar': 'حذف كل السجل؟',
-      },
-      'deleteAllMessage': {
-        'en': 'This will remove all saved analyses.',
-        'ar': 'سيتم حذف جميع التحليلات المحفوظة.',
-      },
-      'deleteItemTitle': {
-        'en': 'Delete this item?',
-        'ar': 'حذف هذا العنصر؟',
-      },
-      'deleteItemMessage': {
-        'en': 'This analysis will be removed from history.',
-        'ar': 'سيتم حذف هذا التحليل من السجل.',
-      },
-      'cancel': {
-        'en': 'Cancel',
-        'ar': 'إلغاء',
-      },
-      'delete': {
-        'en': 'Delete',
-        'ar': 'حذف',
-      },
-      'deleted': {
-        'en': 'Item deleted',
-        'ar': 'تم حذف العنصر',
-      },
-      'allDeleted': {
-        'en': 'All history deleted',
-        'ar': 'تم حذف كل السجل',
-      },
-      'confidence': {
-        'en': 'Confidence',
-        'ar': 'الثقة',
-      },
-    };
-
-    return data[key]?[lang] ?? data[key]?['en'] ?? key;
-  }
 }
 
+/// بطاقة مخصصة لعرض كل عملية تحليل سابقة في السجل بشكل منسق.
 class HistoryCard extends StatelessWidget {
   final String docId;
   final String userId;

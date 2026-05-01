@@ -11,7 +11,10 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import '../core/app_text_styles.dart';
 import '../core/app_styles.dart';
 import '../core/responsive_wrapper.dart';
+import 'app_translations.dart';
 
+/// صفحة تحليل الفيديو (Analysis Page).
+/// تسمح للمستخدم برفع أو إدخال المحتوى للتحقق مما إذا كان حقيقياً أم مولداً بالذكاء الاصطناعي.
 class VideoAnalysisPage extends StatefulWidget {
   const VideoAnalysisPage({super.key});
 
@@ -31,6 +34,7 @@ class _VideoAnalysisPageState
   bool isSaved = false;
   bool hasValidAnalysis = false;
 
+  /// دالة لفتح مستعرض الملفات لاختيار فيديو بصيغة (mp4, mov, avi) لتحليله.
   Future<void> chooseVideo() async {
     FilePickerResult? picked =
         await FilePicker.platform.pickFiles(
@@ -63,13 +67,17 @@ class _VideoAnalysisPageState
     }
   }
 
+  /// الدالة الأساسية لتحليل المحتوى.
+  /// 1. ترسل المحتوى إلى خادم الخلفية (Backend) عبر طلب HTTP POST.
+  /// 2. تستقبل النتيجة وتترجمها.
+  /// 3. تحفظ النتيجة في السجل (History) عبر Firebase للرجوع إليها لاحقاً.
   Future<void> analyzeVideo() async {
     final lang =
         Localizations.localeOf(context).languageCode;
 
     if (fileName.isEmpty) {
       setState(() {
-        result = _text('chooseFirst', lang);
+        result = AppTranslations.text('video_chooseFirst', lang);
         confidence = "";
         reason = "";
         isSaved = false;
@@ -132,16 +140,16 @@ class _VideoAnalysisPageState
 
         await HistoryService.saveHistory(
           type: 'video',
-          titleKey: _text('title', lang),
+          titleKey: AppTranslations.text('video_title', lang),
           resultKey: apiResult,
           confidence: apiConfidence,
           noteKey: apiReason,
         );
       } else {
         setState(() {
-          result = _text('serverError', lang);
+          result = AppTranslations.text('video_serverError', lang);
           confidence = "";
-          reason = _text('tryAgain', lang);
+          reason = AppTranslations.text('video_tryAgain', lang);
           isLoading = false;
           isSaved = false;
           hasValidAnalysis = false;
@@ -149,9 +157,9 @@ class _VideoAnalysisPageState
       }
     } catch (e) {
       setState(() {
-        result = _text('connectionFailed', lang);
+        result = AppTranslations.text('video_connectionFailed', lang);
         confidence = "";
-        reason = _text('backendNote', lang);
+        reason = AppTranslations.text('video_backendNote', lang);
         isLoading = false;
         isSaved = false;
         hasValidAnalysis = false;
@@ -166,12 +174,13 @@ class _VideoAnalysisPageState
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(_text('savedToHistory', lang)),
+        content: Text(AppTranslations.text('video_savedToHistory', lang)),
         backgroundColor: const Color(0xFF24356F),
       ),
     );
   }
 
+  /// دالة لمسح المحتوى الحالي من الشاشة والذاكرة للبدء من جديد.
   void clearVideo() {
     final lang =
         Localizations.localeOf(context).languageCode;
@@ -189,7 +198,7 @@ class _VideoAnalysisPageState
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(_text('cleared', lang)),
+        content: Text(AppTranslations.text('video_cleared', lang)),
         backgroundColor: const Color(0xFF24356F),
       ),
     );
@@ -200,14 +209,14 @@ class _VideoAnalysisPageState
     final lang =
         Localizations.localeOf(context).languageCode;
     final bool isArabic = lang == 'ar';
-    final bool isAiResult = result == _text('likelyAI', lang);
+    final bool isAiResult = result == AppTranslations.text('video_likelyAI', lang);
 
     return Scaffold(
       backgroundColor: const Color(0xFF18245C),
       appBar: AppBar(
         backgroundColor: const Color(0xFF18245C),
         foregroundColor: Colors.white,
-        title: Text(_text('title', lang)),
+        title: Text(AppTranslations.text('video_title', lang)),
       ),
       body: Directionality(
         textDirection:
@@ -218,7 +227,7 @@ class _VideoAnalysisPageState
             child: ListView(
               children: [
               Text(
-                _text('upload', lang),
+                AppTranslations.text('video_upload', lang),
                 style: AppTextStyles.h1.copyWith(fontSize: 24.sp),
               ),
               SizedBox(height: 20.h),
@@ -234,7 +243,7 @@ class _VideoAnalysisPageState
                     ),
                   ),
                   icon: const Icon(Icons.video_file),
-                  label: Text(_text('choose', lang)),
+                  label: Text(AppTranslations.text('video_choose', lang)),
                 ),
               ),
               SizedBox(height: 20.h),
@@ -278,7 +287,7 @@ class _VideoAnalysisPageState
                                   strokeWidth: 2.5.w,
                                 ),
                               )
-                            : Text(_text('analyze', lang)),
+                            : Text(AppTranslations.text('video_analyze', lang)),
                       ),
                     ),
                   ),
@@ -295,7 +304,7 @@ class _VideoAnalysisPageState
                           borderRadius: BorderRadius.circular(AppStyles.borderRadius),
                         ),
                       ),
-                      child: Text(_text('clear', lang)),
+                      child: Text(AppTranslations.text('video_clear', lang)),
                     ),
                   ),
                 ],
@@ -321,7 +330,7 @@ class _VideoAnalysisPageState
                       SizedBox(width: 14.w),
                       Expanded(
                         child: Text(
-                          _text('analyzingNow', lang),
+                          AppTranslations.text('video_analyzingNow', lang),
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 16.sp,
@@ -376,14 +385,14 @@ class _VideoAnalysisPageState
                       ),
                       SizedBox(height: 14.h),
                       _resultLine(
-                        label: _text('status', lang),
+                        label: AppTranslations.text('video_status', lang),
                         value: isAiResult
-                            ? _text('suspicious', lang)
-                            : _text('authentic', lang),
+                            ? AppTranslations.text('video_suspicious', lang)
+                            : AppTranslations.text('video_authentic', lang),
                       ),
                       SizedBox(height: 10.h),
                       _resultLine(
-                        label: _text('confidence', lang),
+                        label: AppTranslations.text('video_confidence', lang),
                         value: confidence,
                       ),
                       SizedBox(height: 10.h),
@@ -408,7 +417,7 @@ class _VideoAnalysisPageState
                             ),
                             SizedBox(width: 8.w),
                             Text(
-                              _text('savedToHistory', lang),
+                              AppTranslations.text('video_savedToHistory', lang),
                               style: TextStyle(
                                 color: Colors.white70,
                                 fontSize: 14.sp,
@@ -428,6 +437,7 @@ class _VideoAnalysisPageState
     );
   }
 
+  /// دالة مساعدة (Helper) لرسم أسطر النتيجة بشكل منسق (مثل الحالة: أصيل).
   Widget _resultLine({
     required String label,
     required String value,
@@ -459,102 +469,4 @@ class _VideoAnalysisPageState
     );
   }
 
-  String _text(String key, String lang) {
-    final data = {
-      'title': {
-        'en': 'Video Analysis',
-        'ar': 'تحليل الفيديو',
-      },
-      'upload': {
-        'en': 'Upload video to analyze:',
-        'ar': 'ارفع فيديو للتحليل:',
-      },
-      'choose': {
-        'en': 'Choose Video',
-        'ar': 'اختر فيديو',
-      },
-      'analyze': {
-        'en': 'Analyze',
-        'ar': 'تحليل',
-      },
-      'clear': {
-        'en': 'Clear',
-        'ar': 'مسح',
-      },
-      'chooseFirst': {
-        'en': 'Choose video first',
-        'ar': 'اختر فيديو أولاً',
-      },
-      'analyzingNow': {
-        'en': 'Analyzing video, please wait...',
-        'ar': 'جاري تحليل الفيديو، انتظر قليلًا...',
-      },
-      'likelyAI': {
-        'en': 'Likely AI Video',
-        'ar': 'غالبًا فيديو مولد',
-      },
-      'likelyReal': {
-        'en': 'Likely Real Video',
-        'ar': 'غالبًا فيديو حقيقي',
-      },
-      'confidence': {
-        'en': 'Confidence',
-        'ar': 'الثقة',
-      },
-      'status': {
-        'en': 'Status',
-        'ar': 'الحالة',
-      },
-      'authentic': {
-        'en': 'Authentic',
-        'ar': 'أصيل',
-      },
-      'suspicious': {
-        'en': 'Suspicious',
-        'ar': 'مشبوه',
-      },
-      'explanation': {
-        'en': 'Explanation',
-        'ar': 'التفسير',
-      },
-      'aiReason': {
-        'en':
-            'Possible synthetic frames or unusual video patterns were detected.',
-        'ar':
-            'تم اكتشاف إطارات اصطناعية محتملة أو أنماط غير طبيعية في الفيديو.',
-      },
-      'realReason': {
-        'en':
-            'The video appears normal with no strong AI indicators.',
-        'ar':
-            'يبدو الفيديو طبيعيًا ولا توجد مؤشرات قوية على الذكاء الاصطناعي.',
-      },
-      'savedToHistory': {
-        'en': 'Saved to history successfully',
-        'ar': 'تم حفظ النتيجة في السجل',
-      },
-      'cleared': {
-        'en': 'Video cleared',
-        'ar': 'تم مسح الفيديو',
-      },
-      'connectionFailed': {
-        'en': 'Connection failed',
-        'ar': 'فشل الاتصال',
-      },
-      'backendNote': {
-        'en': 'Make sure the backend server is running.',
-        'ar': 'تأكدي أن سيرفر الخلفية شغال.',
-      },
-      'serverError': {
-        'en': 'Server error',
-        'ar': 'خطأ في السيرفر',
-      },
-      'tryAgain': {
-        'en': 'Please try again.',
-        'ar': 'حاولي مرة أخرى.',
-      },
-    };
-
-    return data[key]?[lang] ?? data[key]?['en'] ?? key;
-  }
 }

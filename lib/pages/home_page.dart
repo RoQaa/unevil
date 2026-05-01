@@ -12,6 +12,8 @@ import '../core/app_text_styles.dart';
 import '../core/app_styles.dart';
 import '../core/responsive_wrapper.dart';
 
+/// الشاشة الرئيسية للتطبيق (Home Screen).
+/// تعرض أزرار التنقل السريعة للذهاب لصفحات تحليل (النص، الصورة، الصوت، الفيديو)، وزر لعرض السجل.
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
@@ -74,10 +76,7 @@ class HomeScreen extends StatelessWidget {
 
                     Expanded(
                       child: Text(
-                        _text(
-                          'welcomeHome',
-                          lang,
-                        ),
+                        AppTranslations.text('welcomeHome', lang),
                         style: AppTypography.bodyMedium.copyWith(height: 1.4),
                       ),
                     ),
@@ -88,8 +87,8 @@ class HomeScreen extends StatelessWidget {
 
                 _buildFeatureCard(
                   icon: Icons.text_fields_rounded,
-                  title: _text('textAnalysis', lang),
-                  subtitle: _text('textSub', lang),
+                  title: AppTranslations.text('textAnalysis', lang),
+                  subtitle: AppTranslations.text('textSub', lang),
                   onTap: () {
                     Navigator.push(
                       context,
@@ -103,8 +102,8 @@ class HomeScreen extends StatelessWidget {
 
                 _buildFeatureCard(
                   icon: Icons.image_rounded,
-                  title: _text('imageAnalysis', lang),
-                  subtitle: _text('imageSub', lang),
+                  title: AppTranslations.text('imageAnalysis', lang),
+                  subtitle: AppTranslations.text('imageSub', lang),
                   onTap: () {
                     Navigator.push(
                       context,
@@ -118,8 +117,8 @@ class HomeScreen extends StatelessWidget {
 
                 _buildFeatureCard(
                   icon: Icons.mic_rounded,
-                  title: _text('audioAnalysis', lang),
-                  subtitle: _text('audioSub', lang),
+                  title: AppTranslations.text('audioAnalysis', lang),
+                  subtitle: AppTranslations.text('audioSub', lang),
                   onTap: () {
                     Navigator.push(
                       context,
@@ -133,8 +132,8 @@ class HomeScreen extends StatelessWidget {
 
                 _buildFeatureCard(
                   icon: Icons.videocam_rounded,
-                  title: _text('videoAnalysis', lang),
-                  subtitle: _text('videoSub', lang),
+                  title: AppTranslations.text('videoAnalysis', lang),
+                  subtitle: AppTranslations.text('videoSub', lang),
                   onTap: () {
                     Navigator.push(
                       context,
@@ -174,10 +173,7 @@ class HomeScreen extends StatelessWidget {
                     icon: const Icon(Icons.history),
 
                     label: Text(
-                      _text(
-                        'viewHistory',
-                        lang,
-                      ),
+                      AppTranslations.text('viewHistory', lang),
                       style: AppTypography.button,
                     ),
                   ),
@@ -190,60 +186,8 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  String _text(
-    String key,
-    String lang,
-  ) {
-    final data = {
-      'welcomeHome': {
-        'en':
-            'Welcome back,\nLet\'s detect suspicious content.',
-        'ar':
-            'مرحبًا بعودتك،\nلنكتشف المحتوى المشبوه.',
-      },
-      'textAnalysis': {
-        'en': 'Text Analysis',
-        'ar': 'تحليل النص',
-      },
-      'imageAnalysis': {
-        'en': 'Image Analysis',
-        'ar': 'تحليل الصور',
-      },
-      'audioAnalysis': {
-        'en': 'Audio Analysis',
-        'ar': 'تحليل الصوت',
-      },
-      'videoAnalysis': {
-        'en': 'Video Analysis',
-        'ar': 'تحليل الفيديو',
-      },
-      'viewHistory': {
-        'en': 'View History',
-        'ar': 'عرض السجل',
-      },
-      'textSub': {
-        'en': 'Analyze written content.',
-        'ar': 'تحليل النصوص المكتوبة.',
-      },
-      'imageSub': {
-        'en': 'Detect AI-generated images.',
-        'ar': 'كشف الصور المولدة.',
-      },
-      'audioSub': {
-        'en': 'Inspect voice files.',
-        'ar': 'فحص الملفات الصوتية.',
-      },
-      'videoSub': {
-        'en': 'Analyze video content.',
-        'ar': 'تحليل الفيديو.',
-      },
-    };
 
-    return data[key]?[lang] ??
-        data[key]?['en'] ??
-        key;
-  }
-
+  /// دالة مساعدة (Helper) لبناء الكروت (Cards) الموجودة في الصفحة الرئيسية لتجنب تكرار كود التصميم.
   Widget _buildFeatureCard({
     required IconData icon,
     required String title,
