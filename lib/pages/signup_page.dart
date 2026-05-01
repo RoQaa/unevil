@@ -228,6 +228,7 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 
+  /// دالة مساعدة لرسم حقل اختيار الجنس، بحيث يفتح القائمة المنسدلة عند الضغط عليه.
   Widget genderField(String lang, bool isArabic) {
     final String displayText = gender == null ? AppTranslations.text('selectGender', lang) : translatedGenderValue(gender!, lang);
     return GestureDetector(

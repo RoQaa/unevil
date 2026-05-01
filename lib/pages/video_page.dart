@@ -34,6 +34,7 @@ class _VideoAnalysisPageState
   bool isSaved = false;
   bool hasValidAnalysis = false;
 
+  /// دالة لفتح مستعرض الملفات لاختيار فيديو بصيغة (mp4, mov, avi) لتحليله.
   Future<void> chooseVideo() async {
     FilePickerResult? picked =
         await FilePicker.platform.pickFiles(
@@ -436,6 +437,7 @@ class _VideoAnalysisPageState
     );
   }
 
+  /// دالة مساعدة (Helper) لرسم أسطر النتيجة بشكل منسق (مثل الحالة: أصيل).
   Widget _resultLine({
     required String label,
     required String value,

@@ -35,6 +35,7 @@ class _ImageAnalysisPageState extends State<ImageAnalysisPage> {
 
   final ImagePicker picker = ImagePicker();
 
+  /// دالة لفتح معرض الصور أو مدير الملفات واختيار صورة للتحليل.
   Future<void> pickImage() async {
     final XFile? image = await picker.pickImage(
       source: ImageSource.gallery,
@@ -410,6 +411,7 @@ class _ImageAnalysisPageState extends State<ImageAnalysisPage> {
     );
   }
 
+  /// دالة مساعدة (Helper) لرسم أسطر النتيجة بشكل منسق (مثل الحالة: مشبوه).
   Widget _resultLine({
     required String label,
     required String value,

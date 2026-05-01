@@ -266,6 +266,7 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
+  /// دالة مساعدة لرسم كارت يعرض بيانات المستخدم الأساسية (الاسم، الإيميل، العمر).
   Widget _infoCard({
     required IconData icon,
     required String label,
@@ -319,6 +320,7 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
+  /// دالة مساعدة لرسم صف يعرض إحصائية معينة (مثل عدد تحليلات الصور).
   Widget _statRow(
     String label,
     String value,
@@ -352,6 +354,7 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
+  /// دالة مساعدة لرسم كارت يحتوي على زر تغيير لغة التطبيق.
   Widget _languageCard(
     BuildContext context,
     String lang,
@@ -435,6 +438,7 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
+  /// دالة مساعدة لرسم كارت وزر تسجيل الخروج من التطبيق.
   Widget _logoutCard(
     BuildContext context,
     String lang,
