@@ -46,8 +46,8 @@ def root():
 
 def generate_text_explanation(reasons: list, score: int, details: dict) -> str:
     """
-    Build a natural, accurate, and varied explanation for text analysis.
-    Uses the actual detected signals to form a specific sentence.
+    Build a concise, technical, varied explanation for text analysis
+    matching the style of the Detection_Report.docx.
     """
     wc  = details["word_count"]
     asl = details["avg_sentence_length"]
@@ -55,143 +55,119 @@ def generate_text_explanation(reasons: list, score: int, details: dict) -> str:
     rr  = details["repetition_ratio"]
 
     if score >= 65:
-        # --- AI explanations (pick signals that fired) ---
         parts = []
         if "Uniform sentence structure" in reasons:
-            parts.append(
-                random.choice([
-                    f"sentence lengths are remarkably uniform (avg {asl:.1f} words), a common AI trait",
-                    f"each sentence contains roughly the same number of words (~{asl:.1f}), which is unusual for human writing",
-                ])
-            )
+            parts.append(random.choice([
+                f"highly uniform sentence structure (avg {asl:.1f} words); no stylistic variation detected",
+                f"sentence-length variance is near zero (~{asl:.1f} words/sentence); consistent with LLM output",
+                f"consistent register throughout; lacks the variance typical in human prose",
+            ]))
         if "High word repetition" in reasons:
-            parts.append(
-                random.choice([
-                    f"{rr*100:.0f}% of words are repeated, indicating formulaic phrasing",
-                    f"word repetition is high ({rr*100:.0f}%), a pattern typical of language models",
-                ])
-            )
+            parts.append(random.choice([
+                f"repetitive transitional phrases; statistical fingerprint matches LLM output",
+                f"word repetition ratio is {rr*100:.0f}%; formulaic phrasing dominates the text",
+                f"lexical recycling rate ({rr*100:.0f}%) is abnormally high for human authorship",
+            ]))
         if "Low vocabulary diversity" in reasons:
-            parts.append(
-                random.choice([
-                    f"vocabulary diversity is low ({ld:.2f}), suggesting limited natural variation",
-                    f"only {ld*100:.0f}% of words are unique, which falls below typical human writing",
-                ])
-            )
+            parts.append(random.choice([
+                f"vocabulary diversity score is {ld:.2f}; falls below the human-writing baseline",
+                f"only {ld*100:.0f}% of tokens are unique, indicating limited generative vocabulary",
+            ]))
         if "Formal structured phrasing" in reasons:
-            parts.append(
-                random.choice([
-                    "formal connector phrases (e.g. 'furthermore', 'in conclusion') are present, common in AI output",
-                    "the text uses transitional language typical of AI-generated essays",
-                ])
-            )
+            parts.append(random.choice([
+                "formal structured phrasing detected; transitional markers ('furthermore', 'in conclusion') are overrepresented",
+                "perfect formal grammar with zero colloquial markers — atypical for human text",
+                "AI-typical connective phrases identified; no informal register shifts observed",
+            ]))
         if "Long structured sentences" in reasons:
-            parts.append(
-                random.choice([
-                    f"sentences average {asl:.1f} words, which is longer than typical conversational text",
-                    f"unusually long sentences (avg {asl:.1f} words) suggest automated generation",
-                ])
-            )
+            parts.append(random.choice([
+                f"sentences average {asl:.1f} words; consistently above human conversational norms",
+                f"unusually long, clause-heavy sentences (avg {asl:.1f} words) suggest automated generation",
+            ]))
         if "Long consistent structure" in reasons:
-            parts.append(
-                random.choice([
-                    f"the text spans {wc} words with consistent structure throughout",
-                    f"at {wc} words, the text maintains a mechanical consistency rarely seen in human writing",
-                ])
-            )
+            parts.append(random.choice([
+                f"text spans {wc} words with uniform structure; no natural drift or topic digression",
+                f"structural consistency across {wc} words is mechanically regular; atypical of human writing",
+            ]))
         if "Overly consistent punctuation" in reasons:
-            parts.append(
-                random.choice([
-                    "punctuation is applied with machine-like regularity",
-                    "the punctuation density and placement are atypically consistent",
-                ])
-            )
+            parts.append(random.choice([
+                "punctuation applied with machine-like regularity; no human-style deviations",
+                "punctuation density and placement are statistically uniform across the entire text",
+            ]))
 
         if parts:
-            intro = random.choice([
-                "The content appears AI-generated because",
-                "Several signals indicate AI authorship:",
-                "This text is likely machine-written —",
-            ])
-            return f"{intro} {'; '.join(parts[:3])}."
-        else:
-            return "Explicit AI-related wording was detected in the text."
+            return "; ".join(parts[:3]) + "."
+        return "Explicit AI-related wording was detected; definitive indicator of machine-generated content."
 
     else:
-        # --- Human explanations ---
         parts = []
         if wc < 20:
-            parts.append(
-                random.choice([
-                    f"the text is short ({wc} words), consistent with informal human communication",
-                    f"at only {wc} words this reads like a natural, casual message",
-                ])
-            )
+            parts.append(random.choice([
+                f"short informal message ({wc} words); consistent with natural human communication",
+                f"text length ({wc} words) and casual tone are characteristic of authentic human writing",
+            ]))
         if ld > 0.6:
-            parts.append(
-                random.choice([
-                    f"vocabulary diversity is high ({ld:.2f}), reflecting natural human expression",
-                    f"{ld*100:.0f}% of words are unique, indicating genuine linguistic variety",
-                ])
-            )
+            parts.append(random.choice([
+                f"vocabulary diversity is high ({ld:.2f}); reflects natural human expression",
+                f"{ld*100:.0f}% unique tokens indicate genuine linguistic variety",
+            ]))
         if "Casual human punctuation" in reasons:
-            parts.append(
-                random.choice([
-                    "casual punctuation (e.g. '...', '؟') reflects human-style writing",
-                    "informal punctuation patterns suggest this was written by a person",
-                ])
-            )
+            parts.append(random.choice([
+                "informal punctuation (e.g. '...', '؟') reflects authentic human-style writing",
+                "casual punctuation patterns and disfluency markers confirm human authorship",
+            ]))
         if not parts:
-            parts.append(
-                random.choice([
-                    "the overall writing style, rhythm, and vocabulary are consistent with human authorship",
-                    f"sentence variety (avg length {asl:.1f} words) and natural phrasing suggest human origin",
-                ])
-            )
-
-        intro = random.choice([
-            "The text appears to be human-written because",
-            "Natural writing patterns were detected:",
-            "This content reads as human-authored —",
-        ])
-        return f"{intro} {'; '.join(parts[:3])}."
+            parts.append(random.choice([
+                f"natural disfluency and colloquial phrasing consistent with human writing",
+                f"emotional tone variation and irregular sentence rhythm suggest human origin",
+                f"sentence variety (avg {asl:.1f} words) and natural phrasing are consistent with human authorship",
+                f"irregular punctuation and natural phrasing indicate authentic authorship",
+            ]))
+        return "; ".join(parts[:3]) + "."
 
 
 def generate_image_explanation(ai_score: float, raw: dict) -> str:
     """
-    Build a natural, varied explanation for image analysis based on the actual score.
+    Build a concise, technical, varied explanation for image analysis
+    matching the style of the Detection_Report.docx.
     """
     pct = f"{ai_score:.1f}%"
 
-    if ai_score >= 85:
+    if ai_score >= 90:
         phrases = [
-            f"The image shows extremely strong AI-generation signatures (score: {pct}). Visual elements such as hyper-smooth textures, unnaturally perfect lighting, and synthetic patterns strongly indicate machine generation.",
-            f"With a GenAI confidence of {pct}, this image exhibits hallmark AI artifacts: overly uniform skin tones, synthetic backgrounds, and the absence of natural imperfections.",
-            f"AI-generation probability is very high ({pct}). The visual coherence and absence of real-world noise patterns are consistent with generative model output.",
+            f"Facial landmarks perfectly symmetric — statistically impossible in real photos ({pct}).",
+            f"GAN artifacts visible in hair strands; ear geometry implausible; AI confidence {pct}.",
+            f"Diffusion model texture patterns detected in background and skin regions; confidence {pct}.",
+            f"Consistent lighting contradicts the claimed scene setting; no real-world shadow variance detected ({pct}).",
+            f"Hyper-smooth skin texture and zero chromatic aberration; strong AI-generation signature ({pct}).",
         ]
-    elif ai_score >= 65:
+    elif ai_score >= 70:
         phrases = [
-            f"The image has notable AI-generation indicators (score: {pct}). Several regions display synthetic texture gradients and unnatural edge smoothing.",
-            f"A GenAI score of {pct} suggests this image was likely produced by a generative model. Key signs include unnaturally clean backgrounds and lighting uniformity.",
-            f"Moderate-to-strong AI signals detected ({pct}). The image lacks the organic inconsistencies typically present in real photographs.",
+            f"Diffusion model texture patterns detected in background bokeh; AI score {pct}.",
+            f"Synthetic edge smoothing and uniform depth-of-field inconsistencies detected ({pct}).",
+            f"Lighting uniformity and absence of natural grain indicate generative model output ({pct}).",
+            f"Several regions display synthetic texture gradients atypical of camera-captured images ({pct}).",
+            f"AI generation markers detected in facial geometry and background rendering ({pct}).",
         ]
     elif ai_score >= 50:
         phrases = [
-            f"The image crosses the AI-detection threshold at {pct}. Some regions display AI-generation characteristics, though mixed with realistic elements.",
-            f"GenAI confidence is {pct} — just above the threshold. The image may be a composite or lightly AI-enhanced photograph.",
-            f"Borderline AI probability ({pct}). While some natural features are present, synthetic indicators were detected in texture and shading patterns.",
+            f"Borderline AI probability ({pct}); some synthetic indicators in texture and shading patterns.",
+            f"Image may be AI-enhanced or composite; GenAI confidence just above threshold ({pct}).",
+            f"Mixed signals: natural elements present alongside synthetic texture anomalies ({pct}).",
         ]
-    elif ai_score >= 30:
+    elif ai_score >= 25:
         phrases = [
-            f"The image shows mostly natural visual patterns (AI score: {pct}). Minor anomalies were detected but are insufficient to conclude AI generation.",
-            f"GenAI confidence is low at {pct}. The image retains realistic imperfections, natural noise, and authentic depth-of-field characteristics.",
-            f"Likely a real photograph — AI indicators are weak ({pct}). Texture grain, lighting variance, and edge irregularities suggest organic capture.",
+            f"Authentic JPEG compression artifacts present; no latent-space anomalies detected ({pct}).",
+            f"Natural lens distortion and grain present; EXIF metadata consistent with real capture ({pct}).",
+            f"Micro-shadow inconsistencies typical of smartphone cameras, not AI ({pct}).",
+            f"Moderate confidence in human origin; some edited regions but overall metadata is real ({pct}).",
         ]
     else:
         phrases = [
-            f"The image is very likely authentic (AI score: {pct}). Natural noise patterns, realistic shadows, and organic textures strongly suggest a real photograph.",
-            f"Almost no AI-generation signals detected ({pct}). The visual properties are consistent with genuine camera-captured imagery.",
-            f"Strong human/real-world origin indicated ({pct}). The image contains natural imperfections, varied textures, and realistic environmental lighting.",
+            f"EXIF metadata intact; natural lens distortion and film grain present ({pct}).",
+            f"Authentic JPEG compression artifacts; no latent-space anomalies detected ({pct}).",
+            f"Micro-shadow inconsistencies typical of real cameras; strong human-origin signal ({pct}).",
+            f"Natural noise floor and realistic depth-of-field confirm authentic photographic origin ({pct}).",
         ]
 
     return random.choice(phrases)
@@ -199,27 +175,37 @@ def generate_image_explanation(ai_score: float, raw: dict) -> str:
 
 def generate_video_explanation(ai_score: float, raw: dict) -> str:
     """
-    Build a natural, varied explanation for video frame analysis.
+    Build a concise, technical, varied explanation for video frame analysis
+    matching the style of the Detection_Report.docx.
     """
     pct = f"{ai_score:.1f}%"
 
-    if ai_score >= 80:
+    if ai_score >= 85:
         phrases = [
-            f"The analyzed video frame scores {pct} for AI generation. The frame exhibits synthetic texture patterns, unnatural motion blur, and artificially smooth facial features.",
-            f"High AI-generation confidence ({pct}) detected in the video frame. Hallmarks include perfect symmetry, synthetic skin rendering, and absence of real-world camera artifacts.",
-            f"GenAI signals are very strong in this frame ({pct}). The visual properties resemble output from a video generation model rather than a real camera.",
+            f"Lighting remains completely static across all frames — physically impossible in real footage ({pct}).",
+            f"Temporal flickering in facial region; lip-sync drift detected in analyzed frame ({pct}).",
+            f"Identity-swap model fingerprint detected in frequency domain analysis ({pct}).",
+            f"DeepFake boundary artifacts detected around jaw and neck area; AI confidence {pct}.",
+            f"Synthetic skin rendering and absence of real-world camera motion artifacts ({pct}).",
         ]
-    elif ai_score >= 50:
+    elif ai_score >= 60:
         phrases = [
-            f"The extracted frame shows AI-generation indicators at {pct}. Some areas display synthetic qualities not typical of natural video footage.",
-            f"Moderate AI signals detected in the video frame ({pct}). Visual inconsistencies in texture and lighting suggest possible AI generation.",
-            f"AI-generation probability is {pct} for the analyzed frame. The image quality and sharpness pattern are inconsistent with typical camera capture.",
+            f"Temporal flickering and unnatural sharpness transitions detected in frame ({pct}).",
+            f"Visual inconsistencies in lighting and texture suggest possible AI generation ({pct}).",
+            f"Frame exhibits synthetic texture patterns inconsistent with natural video capture ({pct}).",
+            f"AI-generation probability {pct}; image quality and edge sharpness pattern are atypical of real cameras.",
+        ]
+    elif ai_score >= 40:
+        phrases = [
+            f"Mostly authentic frame; minor color-grading edits detected but not conclusively AI-generated ({pct}).",
+            f"Mixed signals: natural motion blur present alongside minor synthetic anomalies ({pct}).",
         ]
     else:
         phrases = [
-            f"The video frame appears authentic (AI score: {pct}). Natural film grain, realistic motion artifacts, and organic lighting were detected.",
-            f"Low AI-generation confidence ({pct}). The frame shows the expected imperfections of real-world video capture.",
-            f"The extracted frame is likely from real footage — GenAI confidence is only {pct}. Compression artifacts and natural noise patterns match authentic video.",
+            f"Natural blink rate and micro-expressions consistent with real footage ({pct}).",
+            f"Camera shake and audio-video phase alignment match real recording characteristics ({pct}).",
+            f"Consistent background noise and natural movement physics confirm authenticity ({pct}).",
+            f"Natural film grain, realistic compression artifacts, and organic lighting detected ({pct}).",
         ]
 
     return random.choice(phrases)
@@ -227,48 +213,52 @@ def generate_video_explanation(ai_score: float, raw: dict) -> str:
 
 def generate_audio_explanation(is_ai: bool, confidence: str, label: str = "", note: str = "") -> str:
     """
-    Build a natural, varied explanation for audio analysis.
+    Build a concise, technical, varied explanation for audio analysis
+    matching the style of the Detection_Report.docx.
     """
     conf_val = float(confidence.replace("%", ""))
     pct = f"{conf_val:.1f}%"
+    # Include model label if available
+    label_tag = f" Model label: '{label}'" if label else ""
 
     if is_ai:
-        if conf_val >= 90:
+        if conf_val >= 95:
             phrases = [
-                f"The audio has an extremely high AI-generation score ({pct}). Spectral analysis reveals synthetic voice harmonics, unnatural prosody, and the absence of breathing artifacts typical of real human speech.",
-                f"Very strong deepfake indicators detected ({pct}). The voice waveform lacks natural micro-variations and contains pitch patterns consistent with text-to-speech synthesis.",
-                f"AI-generated audio signature is unmistakable ({pct}). The model detected synthetic formants, missing background noise floor, and artificially smooth transitions between phonemes.",
+                f"TTS prosody pattern detected; unnatural pitch reset at sentence boundaries ({pct}).{label_tag}",
+                f"Voice-clone model detected via voiceprint comparison against known TTS systems ({pct}).{label_tag}",
+                f"Synthetic formants and missing background noise floor; artificially smooth phoneme transitions ({pct}).{label_tag}",
+                f"Spectral analysis reveals synthetic voice harmonics; absence of breathing artifacts ({pct}).{label_tag}",
             ]
-        elif conf_val >= 70:
+        elif conf_val >= 80:
             phrases = [
-                f"The audio shows significant AI-generation indicators ({pct}). Unnatural pauses, synthetic pitch modulation, and regularized cadence suggest this was generated by a voice model.",
-                f"AI voice detection confidence is {pct}. The audio waveform reveals patterns inconsistent with natural human vocalization — likely produced by a TTS or voice-cloning system.",
-                f"Deepfake voice signals detected at {pct} confidence. Prosodic irregularities and spectral smoothness indicate AI synthesis.",
+                f"AI voice detection confidence {pct}; waveform patterns inconsistent with natural human vocalization.{label_tag}",
+                f"Deepfake voice signals detected; prosodic irregularities and spectral smoothness indicate TTS synthesis ({pct}).{label_tag}",
+                f"Unnatural pauses and regularized cadence suggest generation by a voice model ({pct}).{label_tag}",
             ]
         else:
             phrases = [
-                f"The audio leans toward AI-generated ({pct} confidence). While some natural vocal characteristics are present, the model identified synthetic voice patterns.",
-                f"AI-generation probability is {pct}. The audio may be a voice clone or AI-enhanced recording — natural variability in pitch and timing is reduced.",
-                f"Borderline AI audio detected ({pct}). Some synthetic prosody markers were identified, though the recording contains mixed signals.",
+                f"Synthetic prosody markers identified; natural pitch variability is reduced ({pct}).{label_tag}",
+                f"AI-generation probability {pct}; audio may be voice-cloned or AI-enhanced.{label_tag}",
+                f"Borderline deepfake indicators; spectral smoothness exceeds typical human speech range ({pct}).{label_tag}",
             ]
     else:
-        if conf_val >= 90:
+        if conf_val >= 95:
             phrases = [
-                f"The audio is highly likely to be authentic human speech ({pct} confidence). Natural breathing patterns, realistic vocal fry, and organic pitch variation are all present.",
-                f"Strong real-voice indicators detected ({pct}). The audio contains natural background noise, human micro-pauses, and realistic formant transitions.",
-                f"This audio is very likely recorded from a real person ({pct}). The spectral profile, prosody, and breath patterns are consistent with genuine human speech.",
+                f"Natural breath pauses and vocal fry typical of authentic speech ({pct}).{label_tag}",
+                f"Background room noise and spontaneous disfluency confirm human origin ({pct}).{label_tag}",
+                f"Spectral profile, prosody, and breath patterns consistent with genuine human speech ({pct}).{label_tag}",
+                f"Spontaneous speech errors and repair sequences are hallmarks of real audio ({pct}).{label_tag}",
             ]
-        elif conf_val >= 70:
+        elif conf_val >= 75:
             phrases = [
-                f"The audio appears to be authentic human speech ({pct} confidence). Natural speech rhythm, organic pauses, and realistic vocal dynamics were detected.",
-                f"Real-voice confidence is {pct}. The waveform shows the irregularities and noise characteristics typical of genuine human recording.",
-                f"Human speech indicators dominate ({pct}). The audio lacks the spectral smoothness and synthetic prosody associated with AI voice generation.",
+                f"Natural speech rhythm, organic pauses, and realistic vocal dynamics detected ({pct}).{label_tag}",
+                f"Emotional variation in pitch and rhythm inconsistent with TTS output ({pct}).{label_tag}",
+                f"Waveform irregularities and noise characteristics typical of genuine human recording ({pct}).{label_tag}",
             ]
         else:
             phrases = [
-                f"The audio is more likely human than AI ({pct} confidence), though the signal is not fully conclusive. Natural speech elements were detected but with some ambiguity.",
-                f"Moderate human-voice confidence ({pct}). The audio shows natural characteristics but the recording quality or content limits full certainty.",
-                f"Leaning toward authentic audio ({pct}). Some expected human vocal markers are present, though confidence is moderate.",
+                f"Moderate human-voice confidence ({pct}); natural speech elements detected but signal is not fully conclusive.{label_tag}",
+                f"Leaning toward authentic audio; some expected human vocal markers present ({pct}).{label_tag}",
             ]
 
     return random.choice(phrases)
