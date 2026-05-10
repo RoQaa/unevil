@@ -210,7 +210,7 @@ class _ImageAnalysisPageState extends State<ImageAnalysisPage> {
               children: [
               Text(
                 AppTranslations.text('image_upload', lang),
-                style: AppTextStyles.h1.copyWith(fontSize: 16.sp),
+                style: AppTextStyles.h1.copyWith(fontSize: 16.spMin),
               ),
               SizedBox(height: 20.h),
               SizedBox(
@@ -378,6 +378,13 @@ class _ImageAnalysisPageState extends State<ImageAnalysisPage> {
                             color: isAiResult ? Colors.redAccent : Colors.greenAccent,
                           ),
                         ),
+                        SizedBox(height: 14.h),
+                        if (reason.isNotEmpty)
+                          _resultLine(
+                            label: AppTranslations.text('reason', lang),
+                            value: reason,
+                            multiLine: true,
+                          ),
                         const SizedBox(height: 10),
                       ],
                       if (isSaved) ...[
@@ -394,7 +401,7 @@ class _ImageAnalysisPageState extends State<ImageAnalysisPage> {
                               AppTranslations.text('image_savedToHistory', lang),
                               style: TextStyle(
                                 color: Colors.white70,
-                                fontSize: 14.sp,
+                                fontSize: 14.spMin,
                               ),
                             ),
                           ],
@@ -425,7 +432,7 @@ class _ImageAnalysisPageState extends State<ImageAnalysisPage> {
           "$label: ",
           style: TextStyle(
             color: Colors.white,
-            fontSize: 16.sp,
+            fontSize: 16.spMin,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -434,7 +441,7 @@ class _ImageAnalysisPageState extends State<ImageAnalysisPage> {
             value,
             style: TextStyle(
               color: Colors.white70,
-              fontSize: 15.sp,
+              fontSize: 15.spMin,
               height: 1.4,
             ),
           ),

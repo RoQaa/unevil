@@ -239,21 +239,7 @@ class ProfilePage extends StatelessWidget {
                               ),
                             ),
 
-                            SizedBox(
-                                height:
-                                    18.h),
 
-                            _languageCard(
-                                context,
-                                lang),
-
-                            SizedBox(
-                                height:
-                                    14.h),
-
-                            _logoutCard(
-                                context,
-                                lang),
                           ],
                         ),
                       ),
@@ -342,7 +328,7 @@ class ProfilePage extends StatelessWidget {
           Expanded(
             child: Text(
               label,
-                style: AppTextStyles.bodyMedium.copyWith(fontSize: 15.sp),
+                style: AppTextStyles.bodyMedium.copyWith(fontSize: 15.spMin),
             ),
           ),
           Text(
@@ -354,161 +340,7 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
-  /// دالة مساعدة لرسم كارت يحتوي على زر تغيير لغة التطبيق.
-  Widget _languageCard(
-    BuildContext context,
-    String lang,
-  ) {
-    return Container(
-      padding:
-          EdgeInsets.all(16.r),
-      decoration: BoxDecoration(
-        color:
-            const Color(0xFF24356F),
-        borderRadius: BorderRadius.circular(18.r),
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 20.r,
-            backgroundColor:
-                Colors.white12,
-            child: Icon(
-              Icons.language,
-              color: const Color(0xFFF5A623),
-              size: 20.r,
-            ),
-          ),
 
-          SizedBox(width: 14.w),
-
-          Expanded(
-            child: Text(
-              AppTranslations.text('profile_language', lang),
-                      style: AppTextStyles.h2.copyWith(fontSize: 18.sp),
-            ),
-          ),
-
-          PopupMenuButton<
-              String>(
-            color: Colors.white,
-            icon: const Icon(
-              Icons.arrow_drop_down,
-              color:
-                  Colors.white,
-            ),
-            onSelected:
-                (value) {
-              UnveilApp.of(
-                      context)
-                  .changeLanguage(
-                      value);
-            },
-            itemBuilder:
-                (context) =>
-                    const [
-              PopupMenuItem(
-                value: 'en',
-                child: Text('English', style: TextStyle(color: Colors.black)),
-              ),
-              PopupMenuItem(
-                value: 'ar',
-                child: Text('العربية', style: TextStyle(color: Colors.black)),
-              ),
-              PopupMenuItem(
-                value: 'es',
-                child: Text('Español', style: TextStyle(color: Colors.black)),
-              ),
-              PopupMenuItem(
-                value: 'fr',
-                child: Text('Français', style: TextStyle(color: Colors.black)),
-              ),
-              PopupMenuItem(
-                value: 'zh',
-                child: Text('中文', style: TextStyle(color: Colors.black)),
-              ),
-              PopupMenuItem(
-                value: 'hi',
-                child: Text('हिन्दी', style: TextStyle(color: Colors.black)),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// دالة مساعدة لرسم كارت وزر تسجيل الخروج من التطبيق.
-  Widget _logoutCard(
-    BuildContext context,
-    String lang,
-  ) {
-    return GestureDetector(
-      onTap: () async {
-        await FirebaseAuth
-            .instance
-            .signOut();
-
-        if (!context.mounted)
-          return;
-
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(
-            builder:
-                (context) =>
-                    const LoginPage(),
-          ),
-          (route) => false,
-        );
-      },
-      child: Container(
-        padding:
-            const EdgeInsets.all(
-                18),
-        decoration: BoxDecoration(
-          color:
-              const Color(
-                  0xFF24356F),
-          borderRadius:
-              BorderRadius.circular(
-                  18),
-        ),
-        child: Row(
-          children: [
-            CircleAvatar(
-              radius: 22.r,
-              backgroundColor:
-                  Colors.white12,
-              child: Icon(
-                Icons.logout,
-                color: Colors.redAccent,
-                size: 22.r,
-              ),
-            ),
-
-            SizedBox(
-                width: 14.w),
-
-            Expanded(
-              child: Text(
-                AppTranslations.text('profile_logout', lang),
-                style: AppTypography.bodySmall,
-              ),
-            ),
-
-            const Icon(
-              Icons
-                  .arrow_forward_ios_rounded,
-              color:
-                  Colors.white70,
-              size: 18,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   String _translatedGender(
     String gender,

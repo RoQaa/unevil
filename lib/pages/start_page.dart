@@ -88,9 +88,10 @@ class _StartPageState extends State<StartPage> with TickerProviderStateMixin {
     final uri = Uri.parse(url);
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       if (mounted) {
+        final lang = Localizations.localeOf(context).languageCode;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Could not launch $url', style: const TextStyle(color: Colors.white)),
+            content: Text('${AppTranslations.text('start_couldNotLaunch', lang)}$url', style: const TextStyle(color: Colors.white)),
             backgroundColor: const Color(0xFF24356F),
           ),
         );
@@ -145,22 +146,7 @@ class _StartPageState extends State<StartPage> with TickerProviderStateMixin {
                           value: 'ar',
                           child: Text('العربية', style: AppTypography.bodySmall.copyWith(color: Colors.black)),
                         ),
-                        PopupMenuItem<String>(
-                          value: 'es',
-                          child: Text('Español', style: AppTypography.bodySmall.copyWith(color: Colors.black)),
-                        ),
-                        PopupMenuItem<String>(
-                          value: 'fr',
-                          child: Text('Français', style: AppTypography.bodySmall.copyWith(color: Colors.black)),
-                        ),
-                        PopupMenuItem<String>(
-                          value: 'zh',
-                          child: Text('中文', style: AppTypography.bodySmall.copyWith(color: Colors.black)),
-                        ),
-                        PopupMenuItem<String>(
-                          value: 'hi',
-                          child: Text('हिन्दी', style: AppTypography.bodySmall.copyWith(color: Colors.black)),
-                        ),
+
                       ],
                     ),
                   ),

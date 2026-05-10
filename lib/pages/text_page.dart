@@ -175,7 +175,7 @@ class _TextAnalysisPageState extends State<TextAnalysisPage> {
                 AppTranslations.text('text_pasteText', lang),
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 18.sp,
+                  fontSize: 18.spMin,
                 ),
               ),
               SizedBox(height: 15.h),
@@ -344,6 +344,13 @@ class _TextAnalysisPageState extends State<TextAnalysisPage> {
                             color: isAiResult ? Colors.redAccent : Colors.greenAccent,
                           ),
                         ),
+                        SizedBox(height: 14.h),
+                        if (reason.isNotEmpty)
+                          _resultLine(
+                            label: AppTranslations.text('reason', lang),
+                            value: reason,
+                            multiLine: true,
+                          ),
                         const SizedBox(height: 10),
                       ],
                       if (isSaved) ...[
@@ -387,7 +394,7 @@ class _TextAnalysisPageState extends State<TextAnalysisPage> {
           "$label: ",
           style: TextStyle(
             color: Colors.white,
-            fontSize: 16.sp,
+            fontSize: 16.spMin,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -396,7 +403,7 @@ class _TextAnalysisPageState extends State<TextAnalysisPage> {
             value,
             style: TextStyle(
               color: Colors.white70,
-              fontSize: 15.sp,
+              fontSize: 15.spMin,
               height: 1.4,
             ),
           ),

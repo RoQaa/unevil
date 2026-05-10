@@ -11,6 +11,7 @@ import 'profile_page.dart';
 import '../core/app_text_styles.dart';
 import '../core/app_styles.dart';
 import '../core/responsive_wrapper.dart';
+import '../main.dart';
 
 /// الشاشة الرئيسية للتطبيق (Home Screen).
 /// تعرض أزرار التنقل السريعة للذهاب لصفحات تحليل (النص، الصورة، الصوت، الفيديو)، وزر لعرض السجل.
@@ -37,20 +38,87 @@ class HomeScreen extends StatelessWidget {
           style: AppTypography.titleSmall,
         ),
 
-        leading: IconButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) =>
-                    const ProfilePage(),
-              ),
-            );
-          },
+        leading: PopupMenuButton<int>(
           icon: const Icon(
             Icons.person_outline,
             color: Colors.white,
           ),
+          color: const Color(0xFF24356F),
+          surfaceTintColor: const Color(0xFF24356F),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          onSelected: (value) {
+            switch (value) {
+              case 1:
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ProfilePage()),
+                );
+                break;
+              case 2:
+                _showLanguageDialog(context, lang);
+                break;
+              case 3:
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      AppTranslations.text('notifications', lang),
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                    backgroundColor: Colors.black87,
+                  ),
+                );
+                break;
+              case 4:
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginPage()),
+                  (route) => false,
+                );
+                break;
+            }
+          },
+          itemBuilder: (context) => [
+            PopupMenuItem(
+              value: 1,
+              child: Row(
+                children: [
+                  const Icon(Icons.person, color: Color(0xFFF5A623)),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text(AppTranslations.text('profile_profile', lang), style: AppTypography.bodySmall.copyWith(color: Colors.white))),
+                ],
+              ),
+            ),
+            PopupMenuItem(
+              value: 2,
+              child: Row(
+                children: [
+                  const Icon(Icons.language, color: Color(0xFFF5A623)),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text(AppTranslations.text('profile_language', lang), style: AppTypography.bodySmall.copyWith(color: Colors.white))),
+                ],
+              ),
+            ),
+            PopupMenuItem(
+              value: 3,
+              child: Row(
+                children: [
+                  const Icon(Icons.notifications, color: Color(0xFFF5A623)),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text(AppTranslations.text('notifications', lang), style: AppTypography.bodySmall.copyWith(color: Colors.white))),
+                ],
+              ),
+            ),
+            PopupMenuItem(
+              value: 4,
+              child: Row(
+                children: [
+                  const Icon(Icons.logout, color: Color(0xFFF5A623)),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text(AppTranslations.text('profile_logout', lang), style: AppTypography.bodySmall.copyWith(color: Colors.white))),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
 
@@ -255,6 +323,40 @@ class HomeScreen extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  void _showLanguageDialog(BuildContext context, String currentLang) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          title: Text(
+            AppTranslations.text('profile_language', currentLang),
+            style: AppTypography.titleSmall.copyWith(color: Colors.black),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                title: Text('English', style: AppTypography.bodySmall.copyWith(color: Colors.black)),
+                onTap: () {
+                  UnveilApp.of(context).changeLanguage('en');
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                title: Text('العربية', style: AppTypography.bodySmall.copyWith(color: Colors.black)),
+                onTap: () {
+                  UnveilApp.of(context).changeLanguage('ar');
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

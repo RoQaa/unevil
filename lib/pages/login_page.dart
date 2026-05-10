@@ -60,21 +60,22 @@ class _LoginCardState extends State<_LoginCard> {
     final String email = emailController.text.trim();
     final String password = passwordController.text.trim();
 
+    final String lang = Localizations.localeOf(context).languageCode;
     if (email.isEmpty || password.isEmpty) {
-      _showMessage("Please enter email and password");
+      _showMessage(AppTranslations.text('login_enterEmailPass', lang));
       return;
     }
 
     // Email validation
     final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
     if (!emailRegex.hasMatch(email)) {
-      _showMessage("Please enter a valid email address");
+      _showMessage(AppTranslations.text('login_validEmail', lang));
       return;
     }
 
     if (password.length < 6) {
       debugPrint("Validation failed: Password too short");
-      _showMessage("Password must be at least 6 characters");
+      _showMessage(AppTranslations.text('login_shortPass', lang));
       return;
     }
 
@@ -90,7 +91,7 @@ class _LoginCardState extends State<_LoginCard> {
 
       if (!mounted) return;
 
-      _showMessage("Login successful! Welcome back.");
+      _showMessage(AppTranslations.text('login_success', lang));
 
       Navigator.pushReplacement(
         context,
@@ -99,15 +100,15 @@ class _LoginCardState extends State<_LoginCard> {
         ),
       );
     } on FirebaseAuthException catch (e) {
-      String message = "Login failed";
-      if (e.code == 'user-not-found') message = "No user found with this email";
-      else if (e.code == 'wrong-password') message = "Incorrect password";
-      else if (e.code == 'invalid-email') message = "Invalid email format";
-      else if (e.code == 'user-disabled') message = "This account has been disabled";
+      String message = AppTranslations.text('login_failed', lang);
+      if (e.code == 'user-not-found') message = AppTranslations.text('login_noUser', lang);
+      else if (e.code == 'wrong-password') message = AppTranslations.text('login_wrongPass', lang);
+      else if (e.code == 'invalid-email') message = AppTranslations.text('login_invalidEmail', lang);
+      else if (e.code == 'user-disabled') message = AppTranslations.text('login_disabled', lang);
       
       _showMessage(e.message ?? message);
     } catch (e) {
-      _showMessage("Error: ${e.toString()}");
+      _showMessage("${AppTranslations.text('login_error', lang)}${e.toString()}");
     } finally {
       if (mounted) {
         setState(() => isLoading = false);
@@ -120,26 +121,27 @@ class _LoginCardState extends State<_LoginCard> {
   Future<void> resetPassword() async {
     final String email = emailController.text.trim();
 
+    final String lang = Localizations.localeOf(context).languageCode;
     if (email.isEmpty) {
-      _showMessage("Enter your email first");
+      _showMessage(AppTranslations.text('login_enterEmailFirst', lang));
       return;
     }
 
     try {
       await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
-      _showMessage("Password reset email sent");
+      _showMessage(AppTranslations.text('login_resetSent', lang));
     } on FirebaseAuthException catch (e) {
-      String message = "Could not send reset email";
+      String message = AppTranslations.text('login_couldNotReset', lang);
 
       if (e.code == 'invalid-email') {
-        message = "Invalid email address";
+        message = AppTranslations.text('login_invalidEmail', lang);
       } else if (e.code == 'user-not-found') {
-        message = "No user found with this email";
+        message = AppTranslations.text('login_noUser', lang);
       }
 
       _showMessage(message);
     } catch (e) {
-      _showMessage("Unexpected error: $e");
+      _showMessage("${AppTranslations.text('login_unexpected', lang)}$e");
     }
   }
 

@@ -249,7 +249,7 @@ class _AudioAnalysisPageState extends State<AudioAnalysisPage> {
                 AppTranslations.text('audioUpload', lang),
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 18.sp,
+                  fontSize: 18.spMin,
                 ),
               ),
               SizedBox(height: 20.h),
@@ -350,7 +350,7 @@ class _AudioAnalysisPageState extends State<AudioAnalysisPage> {
                           AppTranslations.text('analyzingNow', lang),
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: 16.sp,
+                            fontSize: 16.spMin,
                           ),
                         ),
                       ),
@@ -377,7 +377,7 @@ class _AudioAnalysisPageState extends State<AudioAnalysisPage> {
                               result,
                               style: TextStyle(
                                 color: resultColor,
-                                fontSize: 22.sp,
+                                fontSize: 22.spMin,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -408,6 +408,13 @@ class _AudioAnalysisPageState extends State<AudioAnalysisPage> {
                           color: resultColor,
                         ),
                       ),
+                      SizedBox(height: 14.h),
+                      if (reason.isNotEmpty)
+                        _resultLine(
+                          label: AppTranslations.text('reason', lang),
+                          value: reason,
+                          multiLine: true,
+                        ),
                       SizedBox(height: 10.h),
                       if (isSaved) ...[
                         SizedBox(height: 12.h),
@@ -423,7 +430,7 @@ class _AudioAnalysisPageState extends State<AudioAnalysisPage> {
                               AppTranslations.text('savedToHistory', lang),
                               style: TextStyle(
                                 color: Colors.white70,
-                                fontSize: 14.sp,
+                                fontSize: 14.spMin,
                               ),
                             ),
                           ],
@@ -455,7 +462,7 @@ class _AudioAnalysisPageState extends State<AudioAnalysisPage> {
           "$label: ",
           style: TextStyle(
             color: Colors.white,
-            fontSize: 16.sp,
+            fontSize: 16.spMin,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -464,7 +471,7 @@ class _AudioAnalysisPageState extends State<AudioAnalysisPage> {
             value,
             style: TextStyle(
               color: Colors.white70,
-              fontSize: 15.sp,
+              fontSize: 15.spMin,
               height: 1.4,
             ),
           ),

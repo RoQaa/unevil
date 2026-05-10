@@ -43,31 +43,32 @@ class _SignUpPageState extends State<SignUpPage> {
     final String password = passwordController.text.trim();
     final String ageStr = ageController.text.trim();
 
+    final String lang = Localizations.localeOf(context).languageCode;
     if (name.isEmpty || email.isEmpty || password.isEmpty || ageStr.isEmpty || gender == null || !isChecked) {
-      showMessage("Please complete all fields");
+      showMessage(AppTranslations.text('signup_completeFields', lang));
       return;
     }
 
     if (name.length < 3) {
-      showMessage("Name is too short");
+      showMessage(AppTranslations.text('signup_nameShort', lang));
       return;
     }
 
     final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
     if (!emailRegex.hasMatch(email)) {
-      showMessage("Please enter a valid email address");
+      showMessage(AppTranslations.text('login_validEmail', lang));
       return;
     }
 
     if (password.length < 6) {
-      showMessage("Password must be at least 6 characters");
+      showMessage(AppTranslations.text('login_shortPass', lang));
       return;
     }
 
     final int? ageVal = int.tryParse(ageStr);
     if (ageVal == null || ageVal < 5 || ageVal > 100) {
       debugPrint("Validation failed: Invalid age");
-      showMessage("Please enter a valid age");
+      showMessage(AppTranslations.text('signup_invalidAge', lang));
       return;
     }
 
@@ -102,7 +103,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
       if (mounted) {
         setState(() => isLoading = false);
-        showMessage("Account created successfully!");
+        showMessage(AppTranslations.text('signup_success', lang));
         
         Navigator.pushAndRemoveUntil(
           context,
@@ -113,12 +114,12 @@ class _SignUpPageState extends State<SignUpPage> {
     } on FirebaseAuthException catch (e) {
       if (mounted) {
         setState(() => isLoading = false);
-        showMessage(e.message ?? "Signup failed");
+        showMessage(e.message ?? AppTranslations.text('signup_failed', lang));
       }
     } catch (e) {
       if (mounted) {
         setState(() => isLoading = false);
-        showMessage("Error: ${e.toString()}");
+        showMessage("${AppTranslations.text('login_error', lang)}${e.toString()}");
       }
     } finally {
       if (mounted) {

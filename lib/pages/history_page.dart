@@ -442,7 +442,7 @@ class HistoryCard extends StatelessWidget {
                         title,
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 17.sp,
+                          fontSize: 17.spMin,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -528,7 +528,7 @@ class HistoryCard extends StatelessWidget {
                   style: TextStyle(
                     color: color,
                     fontWeight: FontWeight.w600,
-                    fontSize: 16.sp,
+                    fontSize: 16.spMin,
                   ),
                 ),
                 SizedBox(height: 6.h),
@@ -536,7 +536,7 @@ class HistoryCard extends StatelessWidget {
                   "${lang == 'ar' ? 'الثقة' : 'Confidence'}: $confidence",
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 14.sp,
+                    fontSize: 14.spMin,
                   ),
                 ),
                 SizedBox(height: 4.h),
@@ -544,7 +544,7 @@ class HistoryCard extends StatelessWidget {
                   date,
                   style: TextStyle(
                     color: Colors.white54,
-                    fontSize: 13.sp,
+                    fontSize: 13.spMin,
                   ),
                 ),
                 SizedBox(height: 8.h),
@@ -552,7 +552,7 @@ class HistoryCard extends StatelessWidget {
                   _typeLabel(type, lang),
                   style: TextStyle(
                     color: Colors.white54,
-                    fontSize: 12.sp,
+                    fontSize: 12.spMin,
                     fontWeight: FontWeight.bold,
                   ),
                 ),

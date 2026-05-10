@@ -228,7 +228,7 @@ class _VideoAnalysisPageState
               children: [
               Text(
                 AppTranslations.text('video_upload', lang),
-                style: AppTextStyles.h1.copyWith(fontSize: 24.sp),
+                style: AppTextStyles.h1.copyWith(fontSize: 24.spMin),
               ),
               SizedBox(height: 20.h),
               SizedBox(
@@ -333,7 +333,7 @@ class _VideoAnalysisPageState
                           AppTranslations.text('video_analyzingNow', lang),
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: 16.sp,
+                            fontSize: 16.spMin,
                           ),
                         ),
                       ),
@@ -376,7 +376,7 @@ class _VideoAnalysisPageState
                                 color: isAiResult
                                     ? Colors.redAccent
                                     : Colors.greenAccent,
-                                fontSize: 22.sp,
+                                fontSize: 22.spMin,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -405,6 +405,13 @@ class _VideoAnalysisPageState
                           color: isAiResult ? Colors.redAccent : Colors.greenAccent,
                         ),
                       ),
+                      SizedBox(height: 14.h),
+                      if (reason.isNotEmpty)
+                        _resultLine(
+                          label: AppTranslations.text('reason', lang),
+                          value: reason,
+                          multiLine: true,
+                        ),
                       SizedBox(height: 10.h),
                       if (isSaved) ...[
                         SizedBox(height: 12.h),
@@ -420,7 +427,7 @@ class _VideoAnalysisPageState
                               AppTranslations.text('video_savedToHistory', lang),
                               style: TextStyle(
                                 color: Colors.white70,
-                                fontSize: 14.sp,
+                                fontSize: 14.spMin,
                               ),
                             ),
                           ],
@@ -451,7 +458,7 @@ class _VideoAnalysisPageState
           "$label: ",
           style: TextStyle(
             color: Colors.white,
-            fontSize: 16.sp,
+            fontSize: 16.spMin,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -460,7 +467,7 @@ class _VideoAnalysisPageState
             value,
             style: TextStyle(
               color: Colors.white70,
-              fontSize: 15.sp,
+              fontSize: 15.spMin,
               height: 1.4,
             ),
           ),
