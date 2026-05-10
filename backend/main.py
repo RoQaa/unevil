@@ -44,86 +44,92 @@ def root():
 #  EXPLANATION GENERATORS
 # ============================================================
 
-def generate_text_explanation(reasons: list, score: int, details: dict) -> str:
+def is_arabic_text(text: str) -> bool:
+    arabic_chars = len(re.findall(r'[\u0600-\u06FF]', text))
+    total_chars = len(re.sub(r'\s', '', text))
+    if total_chars == 0:
+        return False
+    return (arabic_chars / total_chars) > 0.3
+
+def generate_text_explanation(reasons: list, score: int, details: dict, is_ar: bool = False) -> str:
     """
-    Build a concise, technical, varied explanation for text analysis
-    matching the style of the Detection_Report.docx.
+    Build a concise, technical, varied explanation for text analysis.
+    Supports English and Arabic.
     """
     wc  = details["word_count"]
     asl = details["avg_sentence_length"]
     ld  = details["lexical_diversity"]
     rr  = details["repetition_ratio"]
 
-    if score >= 65:
+    if score >= 50:
         parts = []
         if "Uniform sentence structure" in reasons:
             parts.append(random.choice([
-                f"highly uniform sentence structure (avg {asl:.1f} words); no stylistic variation detected",
-                f"sentence-length variance is near zero (~{asl:.1f} words/sentence); consistent with LLM output",
-                f"consistent register throughout; lacks the variance typical in human prose",
+                f"هيكل الجمل متطابق بشكل كبير (متوسط {asl:.1f} كلمة)؛ لا يوجد تنوع في الأسلوب" if is_ar else f"highly uniform sentence structure (avg {asl:.1f} words); no stylistic variation detected",
+                f"التباين في طول الجمل شبه معدوم، مما يتوافق مع مخرجات الذكاء الاصطناعي" if is_ar else f"sentence-length variance is near zero (~{asl:.1f} words/sentence); consistent with LLM output",
+                f"أسلوب كتابة ثابت وموحد يفتقر إلى التنوع البشري المعتاد" if is_ar else f"consistent register throughout; lacks the variance typical in human prose",
             ]))
         if "High word repetition" in reasons:
             parts.append(random.choice([
-                f"repetitive transitional phrases; statistical fingerprint matches LLM output",
-                f"word repetition ratio is {rr*100:.0f}%; formulaic phrasing dominates the text",
-                f"lexical recycling rate ({rr*100:.0f}%) is abnormally high for human authorship",
+                f"نسبة تكرار الكلمات تبلغ {rr*100:.0f}%؛ العبارات النمطية مسيطرة على النص" if is_ar else f"word repetition ratio is {rr*100:.0f}%; formulaic phrasing dominates the text",
+                f"معدل إعادة استخدام المفردات ({rr*100:.0f}%) مرتفع بشكل غير طبيعي" if is_ar else f"lexical recycling rate ({rr*100:.0f}%) is abnormally high for human authorship",
+                f"تكرار مستمر للعبارات الانتقالية، بصمة إحصائية تطابق توليد الذكاء الاصطناعي" if is_ar else f"repetitive transitional phrases; statistical fingerprint matches LLM output",
             ]))
         if "Low vocabulary diversity" in reasons:
             parts.append(random.choice([
-                f"vocabulary diversity score is {ld:.2f}; falls below the human-writing baseline",
-                f"only {ld*100:.0f}% of tokens are unique, indicating limited generative vocabulary",
+                f"درجة تنوع المفردات منخفضة ({ld:.2f})، مما يشير إلى مفردات توليدية محدودة" if is_ar else f"vocabulary diversity score is {ld:.2f}; falls below the human-writing baseline",
+                f"{ld*100:.0f}% فقط من الكلمات فريدة، مما يدل على فقر في تنوع المفردات" if is_ar else f"only {ld*100:.0f}% of tokens are unique, indicating limited generative vocabulary",
             ]))
         if "Formal structured phrasing" in reasons:
             parts.append(random.choice([
-                "formal structured phrasing detected; transitional markers ('furthermore', 'in conclusion') are overrepresented",
-                "perfect formal grammar with zero colloquial markers — atypical for human text",
-                "AI-typical connective phrases identified; no informal register shifts observed",
+                "تم اكتشاف عبارات انتقالية ورسمية بشكل مفرط، وهو نمط شائع للذكاء الاصطناعي" if is_ar else "formal structured phrasing detected; transitional markers are overrepresented",
+                "قواعد نحوية رسمية خالية من التعبيرات العامية بشكل غير طبيعي" if is_ar else "perfect formal grammar with zero colloquial markers — atypical for human text",
+                "عبارات ربط نمطية للذكاء الاصطناعي بدون أي تحولات غير رسمية" if is_ar else "AI-typical connective phrases identified; no informal register shifts observed",
             ]))
         if "Long structured sentences" in reasons:
             parts.append(random.choice([
-                f"sentences average {asl:.1f} words; consistently above human conversational norms",
-                f"unusually long, clause-heavy sentences (avg {asl:.1f} words) suggest automated generation",
+                f"متوسط طول الجمل {asl:.1f} كلمة؛ أعلى من المعدل الطبيعي للمحادثات البشرية" if is_ar else f"sentences average {asl:.1f} words; consistently above human conversational norms",
+                f"جمل طويلة ومعقدة (متوسط {asl:.1f} كلمة) توحي بالتوليد الآلي" if is_ar else f"unusually long, clause-heavy sentences (avg {asl:.1f} words) suggest automated generation",
             ]))
         if "Long consistent structure" in reasons:
             parts.append(random.choice([
-                f"text spans {wc} words with uniform structure; no natural drift or topic digression",
-                f"structural consistency across {wc} words is mechanically regular; atypical of human writing",
+                f"النص يتكون من {wc} كلمة بهيكل منتظم آلياً، وهذا غير معتاد في الكتابة البشرية" if is_ar else f"structural consistency across {wc} words is mechanically regular; atypical of human writing",
+                f"نص طويل متماسك البنية دون أي استطراد طبيعي للموضوع" if is_ar else f"text spans {wc} words with uniform structure; no natural drift or topic digression",
             ]))
         if "Overly consistent punctuation" in reasons:
             parts.append(random.choice([
-                "punctuation applied with machine-like regularity; no human-style deviations",
-                "punctuation density and placement are statistically uniform across the entire text",
+                "استخدام علامات الترقيم بنمط آلي منتظم جداً بلا أي انحرافات طبيعية" if is_ar else "punctuation applied with machine-like regularity; no human-style deviations",
+                "كثافة علامات الترقيم وتوزيعها منتظم إحصائياً عبر النص بالكامل" if is_ar else "punctuation density and placement are statistically uniform across the entire text",
             ]))
 
         if parts:
-            return "; ".join(parts[:3]) + "."
-        return "Explicit AI-related wording was detected; definitive indicator of machine-generated content."
+            return "؛ ".join(parts[:3]) + "." if is_ar else "; ".join(parts[:3]) + "."
+        return "تم الكشف عن كلمات صريحة تدل على الذكاء الاصطناعي؛ مؤشر قاطع على المحتوى المولد آلياً." if is_ar else "Explicit AI-related wording was detected; definitive indicator of machine-generated content."
 
     else:
         parts = []
-        if wc < 20:
+        if wc < 25:
             parts.append(random.choice([
-                f"short informal message ({wc} words); consistent with natural human communication",
-                f"text length ({wc} words) and casual tone are characteristic of authentic human writing",
+                f"رسالة قصيرة وغير رسمية ({wc} كلمة)؛ تتوافق مع التواصل البشري الطبيعي" if is_ar else f"short informal message ({wc} words); consistent with natural human communication",
+                f"طول النص والنبرة غير الرسمية تعكس أسلوب كتابة بشري أصيل" if is_ar else f"text length ({wc} words) and casual tone are characteristic of authentic human writing",
             ]))
         if ld > 0.6:
             parts.append(random.choice([
-                f"vocabulary diversity is high ({ld:.2f}); reflects natural human expression",
-                f"{ld*100:.0f}% unique tokens indicate genuine linguistic variety",
+                f"تنوع المفردات عالي ({ld:.2f})، مما يعكس تعبيراً بشرياً طبيعياً" if is_ar else f"vocabulary diversity is high ({ld:.2f}); reflects natural human expression",
+                f"تنوع لغوي حقيقي بوجود {ld*100:.0f}% من الكلمات الفريدة" if is_ar else f"{ld*100:.0f}% unique tokens indicate genuine linguistic variety",
             ]))
         if "Casual human punctuation" in reasons:
             parts.append(random.choice([
-                "informal punctuation (e.g. '...', '؟') reflects authentic human-style writing",
-                "casual punctuation patterns and disfluency markers confirm human authorship",
+                "أنماط الترقيم غير الرسمية وعلامات التردد تؤكد الأصل البشري للنص" if is_ar else "casual punctuation patterns and disfluency markers confirm human authorship",
+                "علامات ترقيم غير رسمية تعكس كتابة بشرية طبيعية" if is_ar else "informal punctuation (e.g. '...', '؟') reflects authentic human-style writing",
             ]))
         if not parts:
             parts.append(random.choice([
-                f"natural disfluency and colloquial phrasing consistent with human writing",
-                f"emotional tone variation and irregular sentence rhythm suggest human origin",
-                f"sentence variety (avg {asl:.1f} words) and natural phrasing are consistent with human authorship",
-                f"irregular punctuation and natural phrasing indicate authentic authorship",
+                "التعبيرات العامية وعدم الانتظام في طول الجمل يتوافق مع الكتابة البشرية" if is_ar else f"natural disfluency and colloquial phrasing consistent with human writing",
+                f"تباين الإيقاع والتنوع في الجمل (متوسط {asl:.1f} كلمة) يشير إلى نص بشري طبيعي" if is_ar else f"sentence variety (avg {asl:.1f} words) and natural phrasing are consistent with human authorship",
+                "تقلب النبرة العاطفية وإيقاع الجمل غير المنتظم يوحي بأصل بشري" if is_ar else f"emotional tone variation and irregular sentence rhythm suggest human origin",
             ]))
-        return "; ".join(parts[:3]) + "."
+        return "؛ ".join(parts[:3]) + "." if is_ar else "; ".join(parts[:3]) + "."
 
 
 def generate_image_explanation(ai_score: float, raw: dict) -> str:
@@ -270,21 +276,31 @@ def generate_audio_explanation(is_ai: bool, confidence: str, label: str = "", no
 
 def perform_text_analysis(text: str):
     lower_text = text.lower()
+    is_ar = is_arabic_text(text)
 
     # Basic metrics
     words = text.split()
     word_count = len(words)
 
+    if word_count == 0:
+        return {
+            "result": "Likely Human Written",
+            "confidence": "0%",
+            "reason": "النص فارغ أو قصير جداً للتحليل." if is_ar else "Text is empty or too short to analyze.",
+            "score": 0,
+            "details": {"word_count": 0, "sentence_count": 0, "avg_sentence_length": 0, "lexical_diversity": 0, "repetition_ratio": 0}
+        }
+
     sentences = re.split(r'[.!؟?]+', text)
     sentences = [s.strip() for s in sentences if s.strip()]
-    sentence_count = len(sentences)
+    sentence_count = max(1, len(sentences))
 
     avg_sentence_length = word_count / sentence_count if sentence_count else 0
 
     unique_words = len(set(words))
     lexical_diversity = unique_words / word_count if word_count else 0
 
-    punctuation_count = len(re.findall(r"[.,،;:!?؟]", text))
+    punctuation_count = len(re.findall(r"[.,،;:!?؟\-]", text))
     repetition_ratio = 1 - lexical_diversity
 
     # AI indicator keywords
@@ -292,16 +308,19 @@ def perform_text_analysis(text: str):
         "as an ai", "language model", "generated by ai", "chatgpt", "openai",
         "artificial intelligence", "elevenlabs", "voice generated by",
         "ai generated", "ai-generated", "text to speech", "text-to-speech",
-        "[name]", "[your name]", "<name>", "<your name>"
+        "كذكاء اصطناعي", "نموذج لغوي", "نموذج ذكاء اصطناعي", "تم إنشاؤه بواسطة",
+        "بصفتي ذكاء اصطناعي", "أنا مجرد برنامج", "لا يمكنني", "[name]", "<name>"
     ]
 
     formal_phrases = [
         "in conclusion", "moreover", "furthermore", "therefore", "additionally",
-        "it is important to note", "في الختام", "علاوة على ذلك", "من المهم أن نلاحظ",
+        "it is important to note", "firstly", "secondly", "to summarize",
+        "في الختام", "علاوة على ذلك", "من المهم أن نلاحظ", "بالإضافة إلى ذلك", 
+        "ومع ذلك", "بناء على ذلك", "ختاماً", "من الجدير بالذكر", "مما لا شك فيه"
     ]
 
-    # Scoring
-    score = 50
+    # Initialize a baseline score
+    score = 15
     reasons = []
 
     # Explicit AI keyword → instant return
@@ -313,7 +332,7 @@ def perform_text_analysis(text: str):
             "lexical_diversity": round(lexical_diversity, 2),
             "repetition_ratio": round(repetition_ratio, 2),
         }
-        explanation = "Explicit AI-related wording was detected in the text (e.g. 'ChatGPT', 'as an AI', 'AI-generated'), which is a definitive indicator of machine-generated content."
+        explanation = "تم الكشف عن كلمات صريحة تدل على الذكاء الاصطناعي، وهو مؤشر قاطع على المحتوى المولد آلياً." if is_ar else "Explicit AI-related wording was detected in the text, which is a definitive indicator of machine-generated content."
         return {
             "result": "Likely AI Generated",
             "confidence": "99%",
@@ -326,52 +345,68 @@ def perform_text_analysis(text: str):
     sentence_lengths = [len(s.split()) for s in sentences]
     if len(sentence_lengths) > 2:
         variance = np.var(sentence_lengths)
-        if variance < 15:
+        if variance < 10:
+            score += 20
+            reasons.append("Uniform sentence structure")
+        elif variance < 20:
             score += 10
             reasons.append("Uniform sentence structure")
 
     # Long structured text
-    if avg_sentence_length > 18:
-        score += 10
+    if avg_sentence_length > 20:
+        score += 15
         reasons.append("Long structured sentences")
 
     # Repetition
-    if repetition_ratio > 0.55:
-        score += 12
+    if repetition_ratio > 0.50:
+        score += 15
         reasons.append("High word repetition")
 
     # Low lexical diversity
-    if lexical_diversity < 0.45:
-        score += 8
+    if lexical_diversity < 0.50:
+        score += 15
         reasons.append("Low vocabulary diversity")
 
     # Formal connectors
-    if any(p in lower_text for p in formal_phrases):
-        score += 8
+    found_formal_phrases = [p for p in formal_phrases if p in lower_text]
+    if len(found_formal_phrases) >= 2:
+        score += 20
+        reasons.append("Formal structured phrasing")
+    elif len(found_formal_phrases) == 1:
+        score += 10
         reasons.append("Formal structured phrasing")
 
     # Too much punctuation
-    if punctuation_count > 8:
-        score += 5
+    if punctuation_count > (word_count * 0.15):
+        score += 10
         reasons.append("Overly consistent punctuation")
 
     # Very long text
-    if word_count > 150:
-        score += 10
+    if word_count > 250 and len(found_formal_phrases) > 0:
+        score += 15
         reasons.append("Long consistent structure")
 
     # Human indicators
-    if word_count < 20:
-        score -= 15
+    if word_count < 25:
+        score -= 20
         reasons.append("Short natural text")
 
-    if "..." in text or "؟" in text:
-        score -= 5
+    casual_punct = ["...", "؟؟", "!!", "?!", "!?", "،،", ",,"]
+    if any(p in text for p in casual_punct):
+        score -= 15
         reasons.append("Casual human punctuation")
+        
+    if lexical_diversity > 0.7:
+        score -= 15
 
-    score = max(0, min(score, 100))
+    score = max(5, min(score, 99))
 
-    result = "Likely AI Generated" if score >= 65 else "Likely Human Written"
+    if score >= 50:
+        result = "Likely AI Generated"
+        final_confidence = score
+    else:
+        result = "Likely Human Written"
+        final_confidence = 100 - score
 
     details = {
         "word_count": word_count,
@@ -381,11 +416,11 @@ def perform_text_analysis(text: str):
         "repetition_ratio": round(repetition_ratio, 2),
     }
 
-    explanation = generate_text_explanation(reasons, score, details)
+    explanation = generate_text_explanation(reasons, score, details, is_ar)
 
     return {
         "result": result,
-        "confidence": f"{score}%",
+        "confidence": f"{final_confidence}%",
         "reason": explanation,
         "score": score,
         "details": details,
