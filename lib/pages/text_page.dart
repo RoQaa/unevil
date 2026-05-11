@@ -62,7 +62,10 @@ class _TextAnalysisPageState extends State<TextAnalysisPage> {
     try {
       final response = await http.post(
         Uri.parse('$backendBaseUrl/analyze-text'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept-Language': lang,
+        },
         body: jsonEncode({'text': text}),
       );
 

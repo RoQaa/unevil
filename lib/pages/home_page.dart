@@ -15,8 +15,16 @@ import '../main.dart';
 
 /// الشاشة الرئيسية للتطبيق (Home Screen).
 /// تعرض أزرار التنقل السريعة للذهاب لصفحات تحليل (النص، الصورة، الصوت، الفيديو)، وزر لعرض السجل.
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  bool _emailNotif = true;
+  bool _analysisNotif = true;
 
   @override
   Widget build(BuildContext context) {
@@ -58,15 +66,7 @@ class HomeScreen extends StatelessWidget {
                 _showLanguageDialog(context, lang);
                 break;
               case 3:
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      AppTranslations.text('notifications', lang),
-                      style: const TextStyle(color: Colors.white),
-                    ),
-                    backgroundColor: Colors.black87,
-                  ),
-                );
+                _showNotificationsSnackBar(context, lang);
                 break;
               case 4:
                 Navigator.pushAndRemoveUntil(
@@ -322,6 +322,144 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  /// دالة لعرض سناك بار إعدادات الإشعارات من الأسفل.
+  void _showNotificationsSnackBar(BuildContext context, String lang) {
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: const Color(0xFF1B2B5E),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 8),
+        margin: const EdgeInsets.all(16),
+        padding: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        dismissDirection: DismissDirection.down,
+        content: StatefulBuilder(
+          builder: (context, setSnackState) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header row: bell icon + title
+                  Row(
+                    children: [
+                      Container(
+                        width: 52,
+                        height: 52,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF24356F),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: const Icon(
+                          Icons.notifications_outlined,
+                          color: Color(0xFFF5A623),
+                          size: 30,
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              AppTranslations.text('notifications', lang),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              AppTranslations.text('notif_subtitle', lang),
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.55),
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Email notifications toggle
+                  _buildNotifRow(
+                    label: AppTranslations.text('notif_email', lang),
+                    value: _emailNotif,
+                    onTap: () {
+                      setSnackState(() => _emailNotif = !_emailNotif);
+                      setState(() {});
+                    },
+                  ),
+
+                  const SizedBox(height: 14),
+
+                  // Analysis completion alerts toggle
+                  _buildNotifRow(
+                    label: AppTranslations.text('notif_analysis', lang),
+                    value: _analysisNotif,
+                    onTap: () {
+                      setSnackState(() => _analysisNotif = !_analysisNotif);
+                      setState(() {});
+                    },
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  /// ويدجت مساعدة لبناء صف تبديل الإشعار (Checkbox + Label) داخل السناك بار.
+  Widget _buildNotifRow({
+    required String label,
+    required bool value,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Row(
+        children: [
+          Container(
+            width: 28,
+            height: 28,
+            decoration: BoxDecoration(
+              color: value ? const Color(0xFF2196F3) : Colors.transparent,
+              borderRadius: BorderRadius.circular(7),
+              border: Border.all(
+                color: value ? const Color(0xFF2196F3) : Colors.white38,
+                width: 2,
+              ),
+            ),
+            child: value
+                ? const Icon(Icons.check, color: Colors.white, size: 18)
+                : null,
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

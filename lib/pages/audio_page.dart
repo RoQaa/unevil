@@ -102,6 +102,7 @@ class _AudioAnalysisPageState extends State<AudioAnalysisPage> {
         'POST',
         Uri.parse('$backendBaseUrl/analyze-audio'),
       );
+      request.headers['Accept-Language'] = lang;
 
       request.files.add(
         http.MultipartFile.fromBytes(

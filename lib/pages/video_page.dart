@@ -110,6 +110,7 @@ class _VideoAnalysisPageState
         'POST',
         Uri.parse('$backendBaseUrl/analyze-video'),
       );
+      request.headers['Accept-Language'] = lang;
 
       if (videoBytes != null) {
         request.files.add(

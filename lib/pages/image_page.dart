@@ -89,6 +89,7 @@ class _ImageAnalysisPageState extends State<ImageAnalysisPage> {
         'POST',
         Uri.parse('$backendBaseUrl/analyze-image'),
       );
+      request.headers['Accept-Language'] = lang;
 
       request.files.add(
         http.MultipartFile.fromBytes(
