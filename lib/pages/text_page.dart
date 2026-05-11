@@ -24,6 +24,7 @@ class _TextAnalysisPageState extends State<TextAnalysisPage> {
   final TextEditingController controller = TextEditingController();
 
   String result = "";
+  String rawResult = "";
   String confidence = "";
   String reason = "";
   bool isLoading = false;
@@ -73,7 +74,15 @@ class _TextAnalysisPageState extends State<TextAnalysisPage> {
         final String apiReason = data['reason'] ?? '';
 
         setState(() {
-          result = apiResult;
+          rawResult = apiResult;
+          // ترجمة النتيجة بناءً على القيمة الخام من الباكند
+          if (apiResult == 'Likely AI Generated') {
+            result = AppTranslations.text('likelyAIGenerated', lang);
+          } else if (apiResult == 'Likely Human Written') {
+            result = AppTranslations.text('likelyHumanWritten', lang);
+          } else {
+            result = apiResult;
+          }
           confidence = apiConfidence;
           reason = apiReason;
           isLoading = false;
@@ -149,8 +158,7 @@ class _TextAnalysisPageState extends State<TextAnalysisPage> {
     final String lang = Localizations.localeOf(context).languageCode;
     final bool isArabic = lang == 'ar';
 
-    final bool isAiResult = result == 'Likely AI Generated' ||
-        result == 'غالبًا مولد بالذكاء الاصطناعي';
+    final bool isAiResult = rawResult == 'Likely AI Generated';
 
     final bool isErrorResult =
         result == AppTranslations.text('text_connectionFailed', lang) ||

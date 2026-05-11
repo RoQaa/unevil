@@ -28,6 +28,7 @@ class _VideoAnalysisPageState
   String fileName = "";
   Uint8List? videoBytes;
   String result = "";
+  String rawResult = "";
   String confidence = "";
   String reason = "";
   bool isLoading = false;
@@ -131,7 +132,15 @@ class _VideoAnalysisPageState
         final String apiReason = data['reason'] ?? '';
 
         setState(() {
-          result = apiResult;
+          rawResult = apiResult;
+          // ترجمة النتيجة بناءً على القيمة الخام من الباكند
+          if (apiResult == 'Likely AI Generated' || apiResult == 'Likely AI Video') {
+            result = AppTranslations.text('video_likelyAI', lang);
+          } else if (apiResult == 'Likely Human Written' || apiResult == 'Likely Real Video') {
+            result = AppTranslations.text('video_likelyReal', lang);
+          } else {
+            result = apiResult;
+          }
           confidence = apiConfidence;
           reason = apiReason;
           isLoading = false;
@@ -209,7 +218,7 @@ class _VideoAnalysisPageState
     final lang =
         Localizations.localeOf(context).languageCode;
     final bool isArabic = lang == 'ar';
-    final bool isAiResult = result == AppTranslations.text('video_likelyAI', lang);
+    final bool isAiResult = rawResult == 'Likely AI Generated' || rawResult == 'Likely AI Video';
 
     return Scaffold(
       backgroundColor: const Color(0xFF18245C),

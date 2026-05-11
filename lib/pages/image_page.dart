@@ -27,6 +27,7 @@ class _ImageAnalysisPageState extends State<ImageAnalysisPage> {
   Uint8List? imageBytes;
 
   String result = "";
+  String rawResult = "";
   String confidence = "";
   String reason = "";
   bool isLoading = false;
@@ -108,7 +109,15 @@ class _ImageAnalysisPageState extends State<ImageAnalysisPage> {
         final String apiReason = data['reason'] ?? '';
 
         setState(() {
-          result = apiResult;
+          rawResult = apiResult;
+          // ترجمة النتيجة بناءً على القيمة الخام من الباكند
+          if (apiResult == 'Likely AI Generated') {
+            result = AppTranslations.text('likelyAIGenerated', lang);
+          } else if (apiResult == 'Likely Human Written') {
+            result = AppTranslations.text('likelyHumanWritten', lang);
+          } else {
+            result = apiResult;
+          }
           confidence = apiConfidence;
           reason = apiReason;
           isLoading = false;
@@ -187,12 +196,12 @@ class _ImageAnalysisPageState extends State<ImageAnalysisPage> {
     final lang = Localizations.localeOf(context).languageCode;
     final bool isArabic = lang == 'ar';
 
-    final bool isAiResult = result == 'Likely AI Generated';
+    final bool isAiResult = rawResult == 'Likely AI Generated';
     final bool isErrorResult =
         result == AppTranslations.text('image_connectionFailed', lang) ||
         result == AppTranslations.text('image_serverError', lang) ||
         result == AppTranslations.text('image_chooseFirst', lang) ||
-        result == 'Analysis failed';
+        rawResult == 'Analysis failed';
 
     return Scaffold(
       backgroundColor: const Color(0xFF18245C),
