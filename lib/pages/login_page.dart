@@ -105,8 +105,9 @@ class _LoginCardState extends State<_LoginCard> {
       else if (e.code == 'wrong-password') message = AppTranslations.text('login_wrongPass', lang);
       else if (e.code == 'invalid-email') message = AppTranslations.text('login_invalidEmail', lang);
       else if (e.code == 'user-disabled') message = AppTranslations.text('login_disabled', lang);
+      else if (e.code == 'invalid-credential') message = AppTranslations.text('login_invalidCred', lang);
       
-      _showMessage(e.message ?? message);
+      _showMessage(message);
     } catch (e) {
       _showMessage("${AppTranslations.text('login_error', lang)}${e.toString()}");
     } finally {

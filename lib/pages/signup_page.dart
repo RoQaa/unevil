@@ -114,7 +114,11 @@ class _SignUpPageState extends State<SignUpPage> {
     } on FirebaseAuthException catch (e) {
       if (mounted) {
         setState(() => isLoading = false);
-        showMessage(e.message ?? AppTranslations.text('signup_failed', lang));
+        String message = AppTranslations.text('signup_failed', lang);
+        if (e.code == 'email-already-in-use') message = AppTranslations.text('signup_emailInUse', lang);
+        else if (e.code == 'weak-password') message = AppTranslations.text('signup_weakPassword', lang);
+        else if (e.code == 'invalid-email') message = AppTranslations.text('login_invalidEmail', lang);
+        showMessage(message);
       }
     } catch (e) {
       if (mounted) {
