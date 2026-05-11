@@ -355,17 +355,16 @@ class _ProfilePageState extends State<ProfilePage> {
 
                 SizedBox(height: 20.h),
 
-                // كارت الاسم - قابل للتعديل
+                // كارت الاسم
                 _infoCard(
                   icon: Icons.badge_outlined,
                   label: AppTranslations.text('profile_fullName', lang),
                   value: fullName,
-                  onEdit: () => _openEditDialog(lang),
                 ),
 
                 SizedBox(height: 14.h),
 
-                // كارت البريد الإلكتروني - غير قابل للتعديل
+                // كارت البريد الإلكتروني
                 _infoCard(
                   icon: Icons.email_outlined,
                   label: AppTranslations.text('profile_email', lang),
@@ -374,22 +373,20 @@ class _ProfilePageState extends State<ProfilePage> {
 
                 SizedBox(height: 14.h),
 
-                // كارت الجنس - قابل للتعديل
+                // كارت الجنس
                 _infoCard(
                   icon: Icons.person_outline,
                   label: AppTranslations.text('profile_gender', lang),
                   value: _translatedGender(gender, lang),
-                  onEdit: () => _openEditDialog(lang),
                 ),
 
                 SizedBox(height: 14.h),
 
-                // كارت العمر - قابل للتعديل
+                // كارت العمر
                 _infoCard(
                   icon: Icons.cake_outlined,
                   label: AppTranslations.text('profile_age', lang),
                   value: age,
-                  onEdit: () => _openEditDialog(lang),
                 ),
 
                 SizedBox(height: 18.h),
@@ -483,7 +480,6 @@ class _ProfilePageState extends State<ProfilePage> {
     required IconData icon,
     required String label,
     required String value,
-    VoidCallback? onEdit,
   }) {
     return Container(
       padding: EdgeInsets.all(16.r),
@@ -521,19 +517,6 @@ class _ProfilePageState extends State<ProfilePage> {
               ],
             ),
           ),
-
-          // أيقونة التعديل (تظهر فقط إذا كان الحقل قابلاً للتعديل)
-          if (onEdit != null)
-            IconButton(
-              onPressed: onEdit,
-              icon: Icon(
-                Icons.edit_outlined,
-                color: const Color(0xFFF5A623),
-                size: 20.r,
-              ),
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
-            ),
         ],
       ),
     );
